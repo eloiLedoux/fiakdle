@@ -11,7 +11,8 @@ class Fiak:
         #Le nom d'affichage du manga sera toujours le premier nom de la liste.
         self.nom_manga = nom_manga
         self.zoom = zoom
-        self.niveau_aide = 0
+        self.niveau_aide = -1 #Afin qu'au lancement, le premier appel à augmenterAide place le mécanisme en fonctionnement
+        self.channelJeu = None
 
     def guessFiak(self, reponseChar, reponseManga):
         if(reponseChar in self.nom_perso and reponseManga in self.nom_manga):
@@ -23,6 +24,7 @@ class Fiak:
         return False, False
     
     def augmenterAide(self):
+        print(self.niveau_aide)
         self.niveau_aide = (self.niveau_aide + 1) % 4
 
     def getImgUrl(self):
@@ -39,3 +41,12 @@ class Fiak:
 
     def getZoom(self):
         return self.zoom[self.niveau_aide]
+
+    def hasChannelJeu(self):
+        if self.channelJeu: return True; return False
+
+    def setChannelJeu(self, ch):
+        self.channelJeu = ch
+
+    def getChannelJeu(self):
+        return self.channelJeu
