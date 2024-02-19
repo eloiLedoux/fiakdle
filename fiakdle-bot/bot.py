@@ -5,6 +5,7 @@ import datetime
 
 import construire_info
 import cropper
+import traitement_reponse
 
 
 utc = datetime.timezone.utc #Attention, c'est l'heure anglaise donc -1h par rapport à la France
@@ -17,18 +18,19 @@ heure_deuxieme_aide = datetime.time(hour=deuxieme_heure_int, tzinfo=utc)
 heure_troisieme_aide = datetime.time(hour=troisieme_heure_int, tzinfo=utc)
 heure_quatrieme_aide = datetime.time(hour=quatrieme_heure_int, tzinfo=utc)
 
+
 # Opens the file in read-only mode and assigns the contents to the variable cfg to be accessed further down
 with open('config.json', 'r') as cfg:
   # Deserialize the JSON data (essentially turning it into a Python dictionary object so we can use it in our code) 
   data = json.load(cfg) 
 
 TOKEN = data["token"]
-
 bot = discord.Bot()
 
-fiakjour_url = "../images/fiak-du-jour.jpg"
 
+fiakjour_url = "../images/fiak-du-jour.jpg"
 fiak = construire_info.construire_fiak()
+
 
 @bot.command(description="Répète un peu pour voir.")
 async def print(ctx, print):
@@ -51,7 +53,7 @@ async def channelid(ctx):
     else:
         fiak.setAide(0)
 
-    send_message.start() 
+    send_message.start()
     await ctx.respond(f"Le jeu se déroule désormais dans ce channel {fiak.getChannelJeu()}!")
 
 @bot.command(description="Affiche l'image à deviner.")
@@ -63,6 +65,21 @@ async def affiche(ctx):
 async def agmtaide(ctx):
     fiak.augmenterAide()
     await ctx.respond(f"Niveau d'aide augmenté à {fiak.getAide()}")
+
+@bot.command(description="Réduit le niveau de difficulté de l'image.")
+async def reponse(ctx, personnage, manga):
+    personnage_t = traitement_reponse.mise_en_forme(personnage)
+    manga_t = traitement_reponse.mise_en_forme(manga)
+    validPerso, validManga = fiak.guessFiak(personnage_t, manga_t)
+    if validPerso and validManga:
+        await ctx.respond(f"Réponse trouvée !")
+    elif validPerso and not validManga:
+        await ctx.respond(f"C'est bien {fiak.getPerso()} mais pas le bon manga !")
+    elif not validPerso and validManga:
+        await ctx.respond(f"C'est bien {fiak.getManga()} mais pas le bon personnage !")
+    else:
+        await ctx.respond(f"Pas le bon personnage, pas le bon manga...")
+
 
 times = [
     heure_premiere_aide,
