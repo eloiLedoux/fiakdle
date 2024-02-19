@@ -24,7 +24,6 @@ class Fiak:
         return False, False
     
     def augmenterAide(self):
-        print(self.niveau_aide)
         self.niveau_aide = (self.niveau_aide + 1) % 4
 
     def getImgUrl(self):
@@ -32,6 +31,9 @@ class Fiak:
 
     def getAide(self):
         return self.niveau_aide
+
+    def setAide(self, aide):
+        self.niveau_aide = aide % 4
 
     def getManga(self):
         return self.nom_manga[0]

@@ -6,6 +6,17 @@ import datetime
 import construire_info
 import cropper
 
+
+utc = datetime.timezone.utc #Attention, c'est l'heure anglaise donc -1h par rapport à la France
+premiere_heure_int = 23
+deuxieme_heure_int = 11
+troisieme_heure_int = 17
+quatrieme_heure_int = 22
+heure_premiere_aide = datetime.time(hour=premiere_heure_int, tzinfo=utc)
+heure_deuxieme_aide = datetime.time(hour=deuxieme_heure_int, tzinfo=utc)
+heure_troisieme_aide = datetime.time(hour=troisieme_heure_int, tzinfo=utc)
+heure_quatrieme_aide = datetime.time(hour=quatrieme_heure_int, tzinfo=utc)
+
 # Opens the file in read-only mode and assigns the contents to the variable cfg to be accessed further down
 with open('config.json', 'r') as cfg:
   # Deserialize the JSON data (essentially turning it into a Python dictionary object so we can use it in our code) 
@@ -26,6 +37,20 @@ async def print(ctx, print):
 @bot.command(description="Défini le channel comme channel de jeu.")
 async def channelid(ctx):
     fiak.setChannelJeu(ctx.channel.id)
+    now = datetime.datetime.now(tz=utc)
+    premiere_heure = now.replace(hour=premiere_heure_int)
+    deuxieme_heure = now.replace(hour=deuxieme_heure_int)
+    troisieme_heure = now.replace(hour=troisieme_heure_int)
+    quatrieme_heure = now.replace(hour=quatrieme_heure_int)
+    if now >= quatrieme_heure:
+        fiak.setAide(3)
+    elif now >= troisieme_heure:
+        fiak.setAide(2)
+    elif now >= deuxieme_heure:
+        fiak.setAide(1)
+    else:
+        fiak.setAide(0)
+
     send_message.start() 
     await ctx.respond(f"Le jeu se déroule désormais dans ce channel {fiak.getChannelJeu()}!")
 
@@ -39,13 +64,11 @@ async def agmtaide(ctx):
     fiak.augmenterAide()
     await ctx.respond(f"Niveau d'aide augmenté à {fiak.getAide()}")
 
-
-utc = datetime.timezone.utc #Attention, c'est l'heure anglaise donc -1h par rapport à la France
 times = [
-    datetime.time(hour=23, tzinfo=utc),
-    datetime.time(hour=11, tzinfo=utc),
-    datetime.time(hour=17, minute=30, tzinfo=utc),
-    datetime.time(hour=22, tzinfo=utc)
+    heure_premiere_aide,
+    heure_deuxieme_aide,
+    heure_troisieme_aide,
+    heure_quatrieme_aide
 ]
 
 @tasks.loop(time=times) #without quotation marks Reddit won't let me use the at sign without them
@@ -55,6 +78,5 @@ async def send_message():
         fiak.augmenterAide()
         cropper.crop_image(fiak.getImgUrl(), fiakjour_url, fiak.getZoom())
         await channel.send(file=discord.File(fiakjour_url))
-
 
 bot.run(TOKEN)
