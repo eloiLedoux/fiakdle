@@ -13,6 +13,7 @@ class Fiak:
         self.zoom = zoom
         self.niveau_aide = -1 #Afin qu'au lancement, le premier appel à augmenterAide place le mécanisme en fonctionnement
         self.channelJeu = None
+        self.jeu_en_cours = False
 
     def guessFiak(self, reponseChar, reponseManga):
         if(reponseChar in self.nom_perso and reponseManga in self.nom_manga):
@@ -52,3 +53,9 @@ class Fiak:
 
     def getChannelJeu(self):
         return self.channelJeu
+
+    def getJeuEnCours(self):
+        return self.jeu_en_cours
+
+    def setJeuEnCours(self, bool):
+        self.jeu_en_cours = bool

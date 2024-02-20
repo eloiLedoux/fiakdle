@@ -23,17 +23,14 @@ heure_quatrieme_aide = datetime.time(hour=quatrieme_heure_int, tzinfo=utc)
 with open('config.json', 'r') as cfg:
   # Deserialize the JSON data (essentially turning it into a Python dictionary object so we can use it in our code) 
   data = json.load(cfg) 
-
 TOKEN = data["token"]
 bot = discord.Bot()
-
 
 fiakjour_url = "../images/fiak-du-jour.jpg"
 fiak = construire_info.construire_fiak()
 
 reponse_absence_channel = "Aucun channel n'a été assigné pour le jeu"
 winners_id = []
-
 
 @bot.command(description="Répète un peu pour voir.")
 async def print(ctx, print):
@@ -42,6 +39,8 @@ async def print(ctx, print):
 @bot.command(description="Défini le channel comme channel de jeu.")
 async def channelid(ctx):
     fiak.setChannelJeu(ctx.channel.id)
+    winners_id.clear()
+
     now = datetime.datetime.now(tz=utc)
     premiere_heure = now.replace(hour=premiere_heure_int)
     deuxieme_heure = now.replace(hour=deuxieme_heure_int)
@@ -58,7 +57,10 @@ async def channelid(ctx):
     else:
         fiak.setAide(0) #Après minuit, inférieur à 23h mais 0 quand même car inférieur à 11h
 
-    send_message.start()
+    if not fiak.getJeuEnCours():
+        send_message.start()
+        set_reset.start()
+        fiak.setJeuEnCours(True)
     await ctx.respond(f"Le jeu se déroule désormais dans ce channel {fiak.getChannelJeu()}!")
 
 @bot.command(description="Affiche l'image à deviner.")
@@ -75,20 +77,20 @@ async def agmtaide(ctx):
 async def reponse(ctx, personnage, manga):
     if fiak.hasChannelJeu():
         channel = bot.get_channel(fiak.getChannelJeu())
+        user_id = ctx.author.id
 
         personnage_t = traitement_reponse.mise_en_forme(personnage)
         manga_t = traitement_reponse.mise_en_forme(manga)
-        
         validPerso, validManga = fiak.guessFiak(personnage_t, manga_t)
-        
-        if validPerso and validManga:
-            user_id = ctx.author.id
+            
+        if user_id in winners_id:
+            await ctx.respond(f"Vous avez déjà trouvé {fiak.getPerso()} de {fiak.getManga()} !", ephemeral=True)    
+        elif validPerso and validManga:
             user = await bot.fetch_user(user_id)
             
             if user_id not in winners_id:
                 await channel.send(f"La réponse à été trouvée par {user.name} !")
-            winners_id.append(user_id)
-            
+            winners_id.append(user_id) 
             await ctx.respond(f"La réponse était bien {fiak.getPerso()} de {fiak.getManga()} !", ephemeral=True)
         elif validPerso and not validManga:
             await ctx.respond(f"C'est bien {fiak.getPerso()} mais pas le bon manga !")
@@ -113,5 +115,9 @@ async def send_message():
         fiak.augmenterAide()
         cropper.crop_image(fiak.getImgUrl(), fiakjour_url, fiak.getZoom())
         await channel.send(file=discord.File(fiakjour_url))
+
+@tasks.loop(time=heure_premiere_aide)
+async def set_reset():
+    winners_id.clear()
 
 bot.run(TOKEN)
