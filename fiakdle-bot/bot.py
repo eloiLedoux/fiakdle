@@ -31,6 +31,9 @@ bot = discord.Bot()
 fiakjour_url = "../images/fiak-du-jour.jpg"
 fiak = construire_info.construire_fiak()
 
+reponse_absence_channel = "Aucun channel n'a été assigné pour le jeu"
+winners_id = []
+
 
 @bot.command(description="Répète un peu pour voir.")
 async def print(ctx, print):
@@ -44,14 +47,16 @@ async def channelid(ctx):
     deuxieme_heure = now.replace(hour=deuxieme_heure_int)
     troisieme_heure = now.replace(hour=troisieme_heure_int)
     quatrieme_heure = now.replace(hour=quatrieme_heure_int)
-    if now >= quatrieme_heure:
-        fiak.setAide(3)
+    if now >= premiere_heure:
+        fiak.setAide(0) #Suppérieur à 23h (ce qui ne sera plus le cas à minuit)
+    elif now >= quatrieme_heure:
+        fiak.setAide(3) #Suppérieur à 22h
     elif now >= troisieme_heure:
-        fiak.setAide(2)
+        fiak.setAide(2) #Suppérieur à 17h
     elif now >= deuxieme_heure:
-        fiak.setAide(1)
+        fiak.setAide(1) #Suppérieur à 11h
     else:
-        fiak.setAide(0)
+        fiak.setAide(0) #Après minuit, inférieur à 23h mais 0 quand même car inférieur à 11h
 
     send_message.start()
     await ctx.respond(f"Le jeu se déroule désormais dans ce channel {fiak.getChannelJeu()}!")
@@ -66,20 +71,33 @@ async def agmtaide(ctx):
     fiak.augmenterAide()
     await ctx.respond(f"Niveau d'aide augmenté à {fiak.getAide()}")
 
-@bot.command(description="Réduit le niveau de difficulté de l'image.")
+@bot.command(description="Propose une réponse au fiak du jour.")
 async def reponse(ctx, personnage, manga):
-    personnage_t = traitement_reponse.mise_en_forme(personnage)
-    manga_t = traitement_reponse.mise_en_forme(manga)
-    validPerso, validManga = fiak.guessFiak(personnage_t, manga_t)
-    if validPerso and validManga:
-        await ctx.respond(f"Réponse trouvée !")
-    elif validPerso and not validManga:
-        await ctx.respond(f"C'est bien {fiak.getPerso()} mais pas le bon manga !")
-    elif not validPerso and validManga:
-        await ctx.respond(f"C'est bien {fiak.getManga()} mais pas le bon personnage !")
-    else:
-        await ctx.respond(f"Pas le bon personnage, pas le bon manga...")
+    if fiak.hasChannelJeu():
+        channel = bot.get_channel(fiak.getChannelJeu())
 
+        personnage_t = traitement_reponse.mise_en_forme(personnage)
+        manga_t = traitement_reponse.mise_en_forme(manga)
+        
+        validPerso, validManga = fiak.guessFiak(personnage_t, manga_t)
+        
+        if validPerso and validManga:
+            user_id = ctx.author.id
+            user = await bot.fetch_user(user_id)
+            
+            if user_id not in winners_id:
+                await channel.send(f"La réponse à été trouvée par {user.name} !")
+            winners_id.append(user_id)
+            
+            await ctx.respond(f"La réponse était bien {fiak.getPerso()} de {fiak.getManga()} !", ephemeral=True)
+        elif validPerso and not validManga:
+            await ctx.respond(f"C'est bien {fiak.getPerso()} mais pas le bon manga !")
+        elif not validPerso and validManga:
+            await ctx.respond(f"C'est bien {fiak.getManga()} mais pas le bon personnage !")
+        else:
+            await ctx.respond(f"Pas le bon personnage, pas le bon manga...")
+    else:
+        await ctx.respond(reponse_absence_channel)
 
 times = [
     heure_premiere_aide,
@@ -88,7 +106,7 @@ times = [
     heure_quatrieme_aide
 ]
 
-@tasks.loop(time=times) #without quotation marks Reddit won't let me use the at sign without them
+@tasks.loop(time=times)
 async def send_message():
     if fiak.hasChannelJeu():
         channel = bot.get_channel(fiak.getChannelJeu())
