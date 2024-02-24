@@ -1,5 +1,7 @@
 import discord
 from discord.ext import tasks
+from discord.ext.commands import has_permissions, MissingPermissions
+
 import json
 import datetime
 
@@ -31,6 +33,10 @@ fiak = construire_info.construire_fiak()
 
 reponse_absence_channel = "Aucun channel n'a été assigné pour le jeu."
 reponse_mauvais_channel = "Le jeu se déroule dans un autre channel."
+reponse_set_channel_jeu = "Le jeu se déroule désormais dans ce channel !"
+reponse_absence_droits = "Vous ne disposez pas des droits d'administration nécessaires pour lancer cette commande."
+reponse_erreur_inconnue = "Erreur inconnue."
+
 winners_id = []
 
 @bot.command(description="Répète un peu pour voir.")
@@ -38,6 +44,7 @@ async def print(ctx, print):
     await ctx.respond(print)
 
 @bot.command(description="Défini le channel comme channel de jeu.")
+@has_permissions(administrator=True)
 async def channelid(ctx):
     fiak.setChannelJeu(ctx.channel.id)
     winners_id.clear()
@@ -62,7 +69,14 @@ async def channelid(ctx):
         send_message.start()
         set_reset.start()
         fiak.setJeuEnCours(True)
-    await ctx.respond(f"Le jeu se déroule désormais dans ce channel {fiak.getChannelJeu()}!")
+    await ctx.respond(reponse_set_channel_jeu)
+
+@channelid.error
+async def channelid_error(ctx, error):
+    if isinstance(error, MissingPermissions):
+        await ctx.respond(reponse_absence_droits, ephemeral=True)
+    else:
+        await ctx.respond(reponse_erreur_inconnue, ephemeral=True)
 
 @bot.command(description="Affiche l'image à deviner.")
 async def affiche(ctx):
