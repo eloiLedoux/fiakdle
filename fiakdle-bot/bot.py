@@ -29,7 +29,8 @@ bot = discord.Bot()
 fiakjour_url = "../images/fiak-du-jour.jpg"
 fiak = construire_info.construire_fiak()
 
-reponse_absence_channel = "Aucun channel n'a été assigné pour le jeu"
+reponse_absence_channel = "Aucun channel n'a été assigné pour le jeu."
+reponse_mauvais_channel = "Le jeu se déroule dans un autre channel."
 winners_id = []
 
 @bot.command(description="Répète un peu pour voir.")
@@ -66,40 +67,38 @@ async def channelid(ctx):
 @bot.command(description="Affiche l'image à deviner.")
 async def affiche(ctx):
     cropper.crop_image(fiak.getImgUrl(), fiakjour_url, fiak.getZoom())
-    await ctx.respond(file=discord.File(fiakjour_url))
-
-@bot.command(description="Réduit le niveau de difficulté de l'image.")
-async def agmtaide(ctx):
-    fiak.augmenterAide()
-    await ctx.respond(f"Niveau d'aide augmenté à {fiak.getAide()}")
+    await ctx.respond(file=discord.File(fiakjour_url), ephemeral=True)
 
 @bot.command(description="Propose une réponse au fiak du jour.")
 async def reponse(ctx, personnage, manga):
     if fiak.hasChannelJeu():
-        channel = bot.get_channel(fiak.getChannelJeu())
-        user_id = ctx.author.id
+        if ctx.channel.id == fiak.getChannelJeu():
+            channel = bot.get_channel(fiak.getChannelJeu())
+            user_id = ctx.author.id
 
-        personnage_t = traitement_reponse.mise_en_forme(personnage)
-        manga_t = traitement_reponse.mise_en_forme(manga)
-        validPerso, validManga = fiak.guessFiak(personnage_t, manga_t)
-            
-        if user_id in winners_id:
-            await ctx.respond(f"Vous avez déjà trouvé {fiak.getPerso()} de {fiak.getManga()} !", ephemeral=True)    
-        elif validPerso and validManga:
-            user = await bot.fetch_user(user_id)
-            
-            if user_id not in winners_id:
-                await channel.send(f"La réponse à été trouvée par {user.name} !")
-            winners_id.append(user_id) 
-            await ctx.respond(f"La réponse était bien {fiak.getPerso()} de {fiak.getManga()} !", ephemeral=True)
-        elif validPerso and not validManga:
-            await ctx.respond(f"C'est bien {fiak.getPerso()} mais pas le bon manga !")
-        elif not validPerso and validManga:
-            await ctx.respond(f"C'est bien {fiak.getManga()} mais pas le bon personnage !")
+            personnage_t = traitement_reponse.mise_en_forme(personnage)
+            manga_t = traitement_reponse.mise_en_forme(manga)
+            validPerso, validManga = fiak.guessFiak(personnage_t, manga_t)
+                
+            if user_id in winners_id:
+                await ctx.respond(f"Vous avez déjà trouvé {fiak.getPerso()} de {fiak.getManga()} !", ephemeral=True)    
+            elif validPerso and validManga:
+                user = await bot.fetch_user(user_id)
+                
+                if user_id not in winners_id:
+                    await channel.send(f"La réponse à été trouvée par {user.name} !")
+                winners_id.append(user_id) 
+                await ctx.respond(f"La réponse était bien {fiak.getPerso()} de {fiak.getManga()} !", ephemeral=True)
+            elif validPerso and not validManga:
+                await ctx.respond(f"C'est bien {fiak.getPerso()} mais pas le bon manga !")
+            elif not validPerso and validManga:
+                await ctx.respond(f"C'est bien {fiak.getManga()} mais pas le bon personnage !")
+            else:
+                await ctx.respond(f"Pas le bon personnage, pas le bon manga...")
         else:
-            await ctx.respond(f"Pas le bon personnage, pas le bon manga...")
+            await ctx.respond(reponse_mauvais_channel, ephemeral=True)
     else:
-        await ctx.respond(reponse_absence_channel)
+        await ctx.respond(reponse_absence_channel, ephemeral=True)
 
 times = [
     heure_premiere_aide,
