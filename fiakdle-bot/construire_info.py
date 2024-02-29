@@ -1,13 +1,13 @@
 import fiak
 import recup_info
 
-def construire_fiak():
-    data = recup_info.requete_data()
+def construire_fiak(id):
+    data = recup_info.requete_data_sqlite(id)
     if data == -1:
         #ID associé à aucune carte
         return -1
     return fiak.Fiak(
-        img_url=data["img_url"],
+        img_url=data["image_url"],
         nom_perso=data["nom_perso"].split(";"),
         nom_manga=data["nom_manga"].split(";"),
         #zoom=data["zoom"].split(";")
@@ -15,7 +15,7 @@ def construire_fiak():
     )
 
 if __name__ == "__main__":
-    fiak = construire_fiak()
+    fiak = construire_fiak(1)
     if fiak == -1:
         print("Ce fiak n'existe pas.")
     else:

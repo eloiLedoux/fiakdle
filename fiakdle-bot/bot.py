@@ -9,6 +9,7 @@ import construire_info
 import cropper
 import traitement_reponse
 
+DEFAULT_ID = 1
 
 utc = datetime.timezone.utc #Attention, c'est l'heure anglaise donc -1h par rapport à la France
 premiere_heure_int = 23
@@ -29,7 +30,7 @@ TOKEN = data["token"]
 bot = discord.Bot()
 
 fiakjour_url = "../images/fiak-du-jour.jpg"
-fiak = construire_info.construire_fiak()
+fiak = construire_info.construire_fiak(DEFAULT_ID)
 
 reponse_absence_channel = "Aucun channel n'a été assigné pour le jeu."
 reponse_mauvais_channel = "Le jeu se déroule dans un autre channel."

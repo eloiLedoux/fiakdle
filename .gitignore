@@ -1,6 +1,7 @@
 __pycache__/
 data.json
 config.json
+dbconfig.json
 demo.py
 images/
-api/
+database/
