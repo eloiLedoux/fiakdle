@@ -23,6 +23,12 @@ class Fiak:
         elif (reponseChar in self.nom_perso and reponseManga not in self.nom_manga):
             return True, False
         return False, False
+
+    def update_fiak(self, img_url, nom_perso, nom_manga, zoom):
+        self.img_url = img_url
+        self.nom_perso = nom_perso
+        self.nom_manga = nom_manga
+        self.zoom = zoom
     
     def augmenterAide(self):
         self.niveau_aide = (self.niveau_aide + 1) % 4

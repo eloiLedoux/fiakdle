@@ -14,6 +14,19 @@ def construire_fiak(id):
         zoom=[eval(c) for c in data["zoom"].split(";")]
     )
 
+def update_fiak(fiak, id):
+    data = recup_info.requete_data_sqlite(id)
+    if data == -1:
+        #ID associé à aucune carte
+        return -1
+    fiak.update_fiak(
+        img_url=data["image_url"],
+        nom_perso=data["nom_perso"].split(";"),
+        nom_manga=data["nom_manga"].split(";"),
+        #zoom=data["zoom"].split(";")
+        zoom=[eval(c) for c in data["zoom"].split(";")]
+    )
+
 if __name__ == "__main__":
     fiak = construire_fiak(1)
     if fiak == -1:

@@ -4,12 +4,14 @@ from discord.ext.commands import has_permissions, MissingPermissions
 
 import json
 import datetime
+from random import randint
 
 import construire_info
 import cropper
 import traitement_reponse
 
 DEFAULT_ID = 1
+NB_IMAGES_BDD = 11
 
 utc = datetime.timezone.utc #Attention, c'est l'heure anglaise donc -1h par rapport à la France
 premiere_heure_int = 23
@@ -20,6 +22,8 @@ heure_premiere_aide = datetime.time(hour=premiere_heure_int, tzinfo=utc)
 heure_deuxieme_aide = datetime.time(hour=deuxieme_heure_int, tzinfo=utc)
 heure_troisieme_aide = datetime.time(hour=troisieme_heure_int, tzinfo=utc)
 heure_quatrieme_aide = datetime.time(hour=quatrieme_heure_int, tzinfo=utc)
+
+heure_reset = datetime.time(hour=22, minute=59, tzinfo=utc)
 
 
 # Opens the file in read-only mode and assigns the contents to the variable cfg to be accessed further down
@@ -47,6 +51,9 @@ async def print(ctx, print):
 @bot.command(description="Défini le channel comme channel de jeu.")
 @has_permissions(administrator=True)
 async def channelid(ctx):
+    new_id = randint(1, NB_IMAGES_BDD)
+    construire_info.update_fiak(fiak, new_id)
+
     fiak.setChannelJeu(ctx.channel.id)
     winners_id.clear()
 
@@ -72,12 +79,7 @@ async def channelid(ctx):
         fiak.setJeuEnCours(True)
     await ctx.respond(reponse_set_channel_jeu)
 
-@channelid.error
-async def channelid_error(ctx, error):
-    if isinstance(error, MissingPermissions):
-        await ctx.respond(reponse_absence_droits, ephemeral=True)
-    else:
-        await ctx.respond(reponse_erreur_inconnue, ephemeral=True)
+
 
 @bot.command(description="Affiche l'image à deviner.")
 async def affiche(ctx):
@@ -130,8 +132,11 @@ async def send_message():
         cropper.crop_image(fiak.getImgUrl(), fiakjour_url, fiak.getZoom())
         await channel.send(file=discord.File(fiakjour_url))
 
-@tasks.loop(time=heure_premiere_aide)
+@tasks.loop(time=heure_reset)
 async def set_reset():
     winners_id.clear()
+
+    new_id = randint(1, NB_IMAGES_BDD)
+    construire_info.update_fiak(fiak, new_id)
 
 bot.run(TOKEN)
