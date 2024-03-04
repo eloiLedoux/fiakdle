@@ -40,9 +40,11 @@ reponse_absence_channel = "Aucun channel n'a été assigné pour le jeu."
 reponse_mauvais_channel = "Le jeu se déroule dans un autre channel."
 reponse_set_channel_jeu = "Le jeu se déroule désormais dans ce channel !"
 reponse_absence_droits = "Vous ne disposez pas des droits d'administration nécessaires pour lancer cette commande."
+reponse_absence_winners = "Aucun joueur n'a trouvé la réponse !"
 reponse_erreur_inconnue = "Erreur inconnue."
 
 winners_id = []
+image_buffer = []
 
 @bot.command(description="Répète un peu pour voir.")
 async def print(ctx, print):
@@ -73,13 +75,26 @@ async def channelid(ctx):
     else:
         fiak.setAide(0) #Après minuit, inférieur à 23h mais 0 quand même car inférieur à 11h
 
+
     if not fiak.getJeuEnCours():
         send_message.start()
         set_reset.start()
         fiak.setJeuEnCours(True)
     await ctx.respond(reponse_set_channel_jeu)
+    cropper.crop_image(fiak.getImgUrl(), fiakjour_url, fiak.getZoom())
+    await ctx.respond(file=discord.File(fiakjour_url))
 
-
+@bot.command(description="Affiche la liste des winners.")
+async def winners(ctx):
+    if winners_id:
+        liste_winners_str = '```Liste des gagnants :\n'
+        for w in winners_id:
+            user = await bot.fetch_user(w)
+            liste_winners_str += user.name + '\n'
+        liste_winners_str += str(len(winners_id)) + ' détraqué(s) et fier(s) de l\'être ! ```'
+        await ctx.respond(liste_winners_str, ephemeral=True)
+    else:
+        await ctx.respond(reponse_absence_winners, ephemeral=True)
 
 @bot.command(description="Affiche l'image à deviner.")
 async def affiche(ctx):
@@ -134,9 +149,21 @@ async def send_message():
 
 @tasks.loop(time=heure_reset)
 async def set_reset():
-    winners_id.clear()
+    if fiak.hasChannelJeu():
+        channel = bot.get_channel(fiak.getChannelJeu())
+        if winners_id:
+            liste_winners_str = '```Liste des gagnants :\n'
+            for w in winners_id:
+                user = await bot.fetch_user(w)
+                liste_winners_str += user.name + '\n'
+            liste_winners_str += str(len(winners_id)) + ' détraqué(s) et fier(s) de l\'être ! ```'
+            await channel.send(liste_winners_str)
+        else:
+            await channel.send(reponse_absence_winners)
 
-    new_id = randint(1, NB_IMAGES_BDD)
-    construire_info.update_fiak(fiak, new_id)
+        winners_id.clear()
+
+        new_id = randint(1, NB_IMAGES_BDD)
+        construire_info.update_fiak(fiak, new_id)
 
 bot.run(TOKEN)
