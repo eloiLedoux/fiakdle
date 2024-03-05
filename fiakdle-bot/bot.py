@@ -57,7 +57,7 @@ async def channelid(ctx):
     construire_info.update_fiak(fiak, new_id)
 
     fiak.setChannelJeu(ctx.channel.id)
-    winners_id.clear()
+    fiak.clearWinner()
 
     now = datetime.datetime.now(tz=utc)
     premiere_heure = now.replace(hour=premiere_heure_int)
@@ -86,12 +86,12 @@ async def channelid(ctx):
 
 @bot.command(description="Affiche la liste des winners.")
 async def winners(ctx):
-    if winners_id:
+    if fiak.hasWinner():
         liste_winners_str = '```Liste des gagnants :\n'
-        for w in winners_id:
+        for w in fiak.getWinners():
             user = await bot.fetch_user(w)
             liste_winners_str += user.name + '\n'
-        liste_winners_str += str(len(winners_id)) + ' détraqué(s) et fier(s) de l\'être ! ```'
+        liste_winners_str += str(len(fiak.getWinners())) + ' détraqué(s) et fier(s) de l\'être ! ```'
         await ctx.respond(liste_winners_str, ephemeral=True)
     else:
         await ctx.respond(reponse_absence_winners, ephemeral=True)
@@ -112,14 +112,14 @@ async def reponse(ctx, personnage, manga):
             manga_t = traitement_reponse.mise_en_forme(manga)
             validPerso, validManga = fiak.guessFiak(personnage_t, manga_t)
                 
-            if user_id in winners_id:
+            if user_id in fiak.getWinners():
                 await ctx.respond(f"Vous avez déjà trouvé {fiak.getPerso()} de {fiak.getManga()} !", ephemeral=True)    
             elif validPerso and validManga:
                 user = await bot.fetch_user(user_id)
                 
-                if user_id not in winners_id:
+                if user_id not in fiak.getWinners():
                     await channel.send(f"La réponse à été trouvée par {user.name} !")
-                winners_id.append(user_id) 
+                fiak.ajoutWinner(user_id)
                 await ctx.respond(f"La réponse était bien {fiak.getPerso()} de {fiak.getManga()} !", ephemeral=True)
             elif validPerso and not validManga:
                 await ctx.respond(f"C'est bien {fiak.getPerso()} mais pas le bon manga !")
@@ -151,17 +151,17 @@ async def send_message():
 async def set_reset():
     if fiak.hasChannelJeu():
         channel = bot.get_channel(fiak.getChannelJeu())
-        if winners_id:
+        if fiak.hasWinner():
             liste_winners_str = '```Liste des gagnants :\n'
-            for w in winners_id:
+            for w in fiak.getWinners():
                 user = await bot.fetch_user(w)
                 liste_winners_str += user.name + '\n'
-            liste_winners_str += str(len(winners_id)) + ' détraqué(s) et fier(s) de l\'être ! ```'
+            liste_winners_str += str(len(fiak.getWinners())) + ' détraqué(s) et fier(s) de l\'être ! ```'
             await channel.send(liste_winners_str)
         else:
             await channel.send(reponse_absence_winners)
 
-        winners_id.clear()
+        fiak.clearWinner()
 
         new_id = randint(1, NB_IMAGES_BDD)
         construire_info.update_fiak(fiak, new_id)

@@ -14,6 +14,8 @@ class Fiak:
         self.niveau_aide = -1 #Afin qu'au lancement, le premier appel à augmenterAide place le mécanisme en fonctionnement
         self.channelJeu = None
         self.jeu_en_cours = False
+        self.winners_id = []
+        self.image_buffer = []
 
     def guessFiak(self, reponseChar, reponseManga):
         if(reponseChar in self.nom_perso and reponseManga in self.nom_manga):
@@ -32,6 +34,24 @@ class Fiak:
     
     def augmenterAide(self):
         self.niveau_aide = (self.niveau_aide + 1) % 4
+
+    def ajoutWinner(self, winner):
+        self.winners_id.append(winner)
+
+    def clearWinner(self):
+        self.winners_id.clear()
+
+    def getWinners(self):
+        return self.winners_id
+
+    def hasWinner(self):
+        return True if self.winners_id else False
+
+    def ajoutBuffer(self, image):
+        self.image_buffer.append(image)
+
+    def clearBuffer(self):
+        self.image_buffer.clear()
 
     def getImgUrl(self):
         return self.img_url
