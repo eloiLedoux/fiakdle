@@ -1,5 +1,5 @@
 class Fiak:
-    def __init__(self, img_url, nom_perso, nom_manga, zoom):
+    def __init__(self, img_url, nom_perso, nom_manga, zoom, niveau_aide = -1, channel_jeu = None, jeu_en_cours = False, winners_id = [], image_buffer = []):
         self.img_url = img_url
 
         #Liste de noms acceptés (permet de gérer le cas où plusieurs écritures
@@ -11,11 +11,11 @@ class Fiak:
         #Le nom d'affichage du manga sera toujours le premier nom de la liste.
         self.nom_manga = nom_manga
         self.zoom = zoom
-        self.niveau_aide = -1 #Afin qu'au lancement, le premier appel à augmenterAide place le mécanisme en fonctionnement
-        self.channelJeu = None
-        self.jeu_en_cours = False
-        self.winners_id = []
-        self.image_buffer = []
+        self.niveau_aide = niveau_aide 
+        self.channel_jeu = channel_jeu
+        self.jeu_en_cours = jeu_en_cours
+        self.winners_id = winners_id
+        self.image_buffer = image_buffer
 
     def guessFiak(self, reponseChar, reponseManga):
         if(reponseChar in self.nom_perso and reponseManga in self.nom_manga):
@@ -72,13 +72,13 @@ class Fiak:
         return self.zoom[self.niveau_aide]
 
     def hasChannelJeu(self):
-        if self.channelJeu: return True; return False
+        if self.channel_jeu: return True; return False
 
     def setChannelJeu(self, ch):
-        self.channelJeu = ch
+        self.channel_jeu = ch
 
     def getChannelJeu(self):
-        return self.channelJeu
+        return self.channel_jeu
 
     def getJeuEnCours(self):
         return self.jeu_en_cours

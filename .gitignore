@@ -2,6 +2,7 @@ __pycache__/
 data.json
 config.json
 dbconfig.json
+save.json
 demo.py
 images/
 database/

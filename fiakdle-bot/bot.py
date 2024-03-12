@@ -10,6 +10,11 @@ import construire_info
 import cropper
 import traitement_reponse
 
+# Opens the file in read-only mode and assigns the contents to the variable cfg to be accessed further down
+with open('config.json', 'r') as cfg:
+  # Deserialize the JSON data (essentially turning it into a Python dictionary object so we can use it in our code) 
+  data = json.load(cfg) 
+TOKEN = data["token"]
 DEFAULT_ID = 1
 NB_IMAGES_BDD = 11
 
@@ -22,15 +27,8 @@ heure_premiere_aide = datetime.time(hour=premiere_heure_int, tzinfo=utc)
 heure_deuxieme_aide = datetime.time(hour=deuxieme_heure_int, tzinfo=utc)
 heure_troisieme_aide = datetime.time(hour=troisieme_heure_int, tzinfo=utc)
 heure_quatrieme_aide = datetime.time(hour=quatrieme_heure_int, tzinfo=utc)
-
 heure_reset = datetime.time(hour=22, minute=59, tzinfo=utc)
 
-
-# Opens the file in read-only mode and assigns the contents to the variable cfg to be accessed further down
-with open('config.json', 'r') as cfg:
-  # Deserialize the JSON data (essentially turning it into a Python dictionary object so we can use it in our code) 
-  data = json.load(cfg) 
-TOKEN = data["token"]
 bot = discord.Bot()
 
 fiakjour_url = "../images/fiak-du-jour.jpg"
@@ -43,12 +41,7 @@ reponse_absence_droits = "Vous ne disposez pas des droits d'administration néce
 reponse_absence_winners = "Aucun joueur n'a trouvé la réponse !"
 reponse_erreur_inconnue = "Erreur inconnue."
 
-winners_id = []
-image_buffer = []
-
-@bot.command(description="Répète un peu pour voir.")
-async def print(ctx, print):
-    await ctx.respond(print)
+#COMMANDS
 
 @bot.command(description="Défini le channel comme channel de jeu.")
 @has_permissions(administrator=True)
@@ -75,11 +68,11 @@ async def channelid(ctx):
     else:
         fiak.setAide(0) #Après minuit, inférieur à 23h mais 0 quand même car inférieur à 11h
 
-
     if not fiak.getJeuEnCours():
         send_message.start()
         set_reset.start()
         fiak.setJeuEnCours(True)
+
     await ctx.respond(reponse_set_channel_jeu)
     cropper.crop_image(fiak.getImgUrl(), fiakjour_url, fiak.getZoom())
     await ctx.respond(file=discord.File(fiakjour_url))
@@ -132,18 +125,45 @@ async def reponse(ctx, personnage, manga):
     else:
         await ctx.respond(reponse_absence_channel, ephemeral=True)
 
-times = [
-    heure_premiere_aide,
-    heure_deuxieme_aide,
-    heure_troisieme_aide,
-    heure_quatrieme_aide
-]
+#TASKS
 
-@tasks.loop(time=times)
-async def send_message():
+@tasks.loop(time=heure_premiere_aide)
+async def send_message_a0():
     if fiak.hasChannelJeu():
         channel = bot.get_channel(fiak.getChannelJeu())
-        fiak.augmenterAide()
+
+        fiak.setAide(0) #Suppérieur à 23h (ce qui ne sera plus le cas à minuit)
+
+        cropper.crop_image(fiak.getImgUrl(), fiakjour_url, fiak.getZoom())
+        await channel.send(file=discord.File(fiakjour_url))
+
+@tasks.loop(time=heure_deuxieme_aide)
+async def send_message_a1():
+    if fiak.hasChannelJeu():
+        channel = bot.get_channel(fiak.getChannelJeu())
+
+        fiak.setAide(1) #Suppérieur à 11h
+
+        cropper.crop_image(fiak.getImgUrl(), fiakjour_url, fiak.getZoom())
+        await channel.send(file=discord.File(fiakjour_url))
+
+@tasks.loop(time=heure_troisieme_aide)
+async def send_message_a2():
+    if fiak.hasChannelJeu():
+        channel = bot.get_channel(fiak.getChannelJeu())
+
+        fiak.setAide(2) #Suppérieur à 17h
+
+        cropper.crop_image(fiak.getImgUrl(), fiakjour_url, fiak.getZoom())
+        await channel.send(file=discord.File(fiakjour_url))
+
+@tasks.loop(time=heure_quatrieme_aide)
+async def send_message_a3():
+    if fiak.hasChannelJeu():
+        channel = bot.get_channel(fiak.getChannelJeu())
+
+        fiak.setAide(3) #Suppérieur à 22h
+
         cropper.crop_image(fiak.getImgUrl(), fiakjour_url, fiak.getZoom())
         await channel.send(file=discord.File(fiakjour_url))
 
@@ -165,5 +185,7 @@ async def set_reset():
 
         new_id = randint(1, NB_IMAGES_BDD)
         construire_info.update_fiak(fiak, new_id)
+
+#EXEC
 
 bot.run(TOKEN)
