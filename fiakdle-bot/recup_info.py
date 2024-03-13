@@ -3,6 +3,7 @@ import sqlite3
 
 DB_NAME = "fiakdle.db"
 DB_URL = "../database/" + DB_NAME
+ID_ETAT = 1
 
 def requete_data_jsonfile():
     with open('save.json', 'r') as cfg:
@@ -27,11 +28,11 @@ def requete_data_sqlite(id):
     con.close()
     return data
 
-def requete_etat_sqlite(id):
+def requete_etat_sqlite():
     con = sqlite3.connect(DB_URL)
     con.row_factory = dict_factory
     cur = con.cursor()
-    requete = "SELECT * FROM etat WHERE id="+str(id)
+    requete = "SELECT * FROM etat WHERE id="+str(ID_ETAT)
     cur.execute(requete)
     data = cur.fetchone()
     con.close()
@@ -40,7 +41,7 @@ def requete_etat_sqlite(id):
 if __name__ == "__main__":
     data_json = requete_data_jsonfile()
     data = requete_data_sqlite(1)
-    etat = requete_etat_sqlite(1)
+    etat = requete_etat_sqlite()
     print(data_json)
     print(data)
     print(etat)

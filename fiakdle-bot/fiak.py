@@ -13,9 +13,23 @@ class Fiak:
         self.zoom = zoom
         self.niveau_aide = niveau_aide 
         self.channel_jeu = channel_jeu
-        self.jeu_en_cours = jeu_en_cours
+        self.jeu_en_cours = jeu_en_cours #actuellement obsolète
         self.winners_id = winners_id
         self.image_buffer = image_buffer
+
+    def recuperer_etat_fiak(self):
+        etat = {
+            'img_url' : self.img_url,
+            'nom_perso' : self.nom_perso,
+            'nom_manga' : self.nom_manga,
+            'zoom' : self.zoom,
+            'niveau_aide' : self.niveau_aide,
+            'channel_jeu' : self.channel_jeu if self.channel_jeu else 0,
+            'jeu_en_cours' : 1 if self.jeu_en_cours else 0,
+            'winners_id' : self.winners_id,
+            'image_buffer' : self.image_buffer
+        }
+        return etat
 
     def guessFiak(self, reponseChar, reponseManga):
         if(reponseChar in self.nom_perso and reponseManga in self.nom_manga):
@@ -72,7 +86,9 @@ class Fiak:
         return self.zoom[self.niveau_aide]
 
     def hasChannelJeu(self):
-        if self.channel_jeu: return True; return False
+        if self.channel_jeu and self.channel_jeu != 0: 
+            return True
+        return False
 
     def setChannelJeu(self, ch):
         self.channel_jeu = ch

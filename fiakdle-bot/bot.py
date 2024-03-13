@@ -7,6 +7,7 @@ import datetime
 from random import randint
 
 import construire_info
+import ecrire_info
 import cropper
 import traitement_reponse
 
@@ -29,17 +30,17 @@ heure_troisieme_aide = datetime.time(hour=troisieme_heure_int, tzinfo=utc)
 heure_quatrieme_aide = datetime.time(hour=quatrieme_heure_int, tzinfo=utc)
 heure_reset = datetime.time(hour=22, minute=59, tzinfo=utc)
 
-bot = discord.Bot()
-
-fiakjour_url = "../images/fiak-du-jour.jpg"
-fiak = construire_info.construire_fiak(DEFAULT_ID)
-
 reponse_absence_channel = "Aucun channel n'a été assigné pour le jeu."
 reponse_mauvais_channel = "Le jeu se déroule dans un autre channel."
 reponse_set_channel_jeu = "Le jeu se déroule désormais dans ce channel !"
 reponse_absence_droits = "Vous ne disposez pas des droits d'administration nécessaires pour lancer cette commande."
 reponse_absence_winners = "Aucun joueur n'a trouvé la réponse !"
 reponse_erreur_inconnue = "Erreur inconnue."
+
+bot = discord.Bot()
+
+fiakjour_url = "../images/fiak-du-jour.jpg"
+fiak = construire_info.recuperer_etat()
 
 #COMMANDS
 
@@ -68,10 +69,7 @@ async def channelid(ctx):
     else:
         fiak.setAide(0) #Après minuit, inférieur à 23h mais 0 quand même car inférieur à 11h
 
-    if not fiak.getJeuEnCours():
-        send_message.start()
-        set_reset.start()
-        fiak.setJeuEnCours(True)
+    construire_info.sauvegarder_etat(fiak)
 
     await ctx.respond(reponse_set_channel_jeu)
     cropper.crop_image(fiak.getImgUrl(), fiakjour_url, fiak.getZoom())
@@ -113,6 +111,7 @@ async def reponse(ctx, personnage, manga):
                 if user_id not in fiak.getWinners():
                     await channel.send(f"La réponse à été trouvée par {user.name} !")
                 fiak.ajoutWinner(user_id)
+                construire_info.sauvegarder_winners(fiak.getWinners())
                 await ctx.respond(f"La réponse était bien {fiak.getPerso()} de {fiak.getManga()} !", ephemeral=True)
             elif validPerso and not validManga:
                 await ctx.respond(f"C'est bien {fiak.getPerso()} mais pas le bon manga !")
@@ -121,7 +120,8 @@ async def reponse(ctx, personnage, manga):
             else:
                 await ctx.respond(f"Pas le bon personnage, pas le bon manga...")
         else:
-            await ctx.respond(reponse_mauvais_channel, ephemeral=True)
+            #await ctx.respond(reponse_mauvais_channel, ephemeral=True)
+            await ctx.respond(f"Channel jeu : {fiak.getChannelJeu()}, channel actuel : {ctx.channel.id}", ephemeral=True)
     else:
         await ctx.respond(reponse_absence_channel, ephemeral=True)
 
@@ -133,6 +133,7 @@ async def send_message_a0():
         channel = bot.get_channel(fiak.getChannelJeu())
 
         fiak.setAide(0) #Suppérieur à 23h (ce qui ne sera plus le cas à minuit)
+        construire_info.sauvegarder_aide(0)
 
         cropper.crop_image(fiak.getImgUrl(), fiakjour_url, fiak.getZoom())
         await channel.send(file=discord.File(fiakjour_url))
@@ -143,6 +144,7 @@ async def send_message_a1():
         channel = bot.get_channel(fiak.getChannelJeu())
 
         fiak.setAide(1) #Suppérieur à 11h
+        construire_info.sauvegarder_aide(1)
 
         cropper.crop_image(fiak.getImgUrl(), fiakjour_url, fiak.getZoom())
         await channel.send(file=discord.File(fiakjour_url))
@@ -153,6 +155,7 @@ async def send_message_a2():
         channel = bot.get_channel(fiak.getChannelJeu())
 
         fiak.setAide(2) #Suppérieur à 17h
+        construire_info.sauvegarder_aide(2)
 
         cropper.crop_image(fiak.getImgUrl(), fiakjour_url, fiak.getZoom())
         await channel.send(file=discord.File(fiakjour_url))
@@ -163,6 +166,7 @@ async def send_message_a3():
         channel = bot.get_channel(fiak.getChannelJeu())
 
         fiak.setAide(3) #Suppérieur à 22h
+        construire_info.sauvegarder_aide(3)
 
         cropper.crop_image(fiak.getImgUrl(), fiakjour_url, fiak.getZoom())
         await channel.send(file=discord.File(fiakjour_url))
@@ -185,7 +189,14 @@ async def set_reset():
 
         new_id = randint(1, NB_IMAGES_BDD)
         construire_info.update_fiak(fiak, new_id)
+        construire_info.sauvegarder_etat(fiak)
 
 #EXEC
 
 bot.run(TOKEN)
+send_message_a0.start()
+send_message_a1.start()
+send_message_a2.start()
+send_message_a3.start()
+set_reset.start()
+fiak.setJeuEnCours(True)
