@@ -39,9 +39,15 @@ def requete_etat_sqlite():
     return data
 
 if __name__ == "__main__":
+    for i in range(0, 40):
+        data = requete_data_sqlite(i)
+        print(data)
+
+'''
     data_json = requete_data_jsonfile()
     data = requete_data_sqlite(1)
     etat = requete_etat_sqlite()
     print(data_json)
     print(data)
     print(etat)
+'''

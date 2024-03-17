@@ -1,3 +1,5 @@
+NB_IMAGES_BDD = 11
+
 class Fiak:
     def __init__(self, img_url, nom_perso, nom_manga, zoom, niveau_aide = -1, channel_jeu = None, jeu_en_cours = False, winners_id = [], image_buffer = []):
         self.img_url = img_url
@@ -62,7 +64,14 @@ class Fiak:
         return True if self.winners_id else False
 
     def ajoutBuffer(self, image):
+        if len(self.image_buffer) > NB_IMAGES_BDD // 3:
+            self.image_buffer.pop(0)
         self.image_buffer.append(image)
+
+    def estDansBuffer(self, image):
+        if image in self.image_buffer:
+            return True
+        return False
 
     def clearBuffer(self):
         self.image_buffer.clear()

@@ -51,7 +51,7 @@ def sauvegarder_etat(fiak):
         channel_jeu=etat['channel_jeu'],
         jeu_en_cours=etat['jeu_en_cours'],
         winners_id=';'.join(str(x) for x in etat['winners_id']),
-        image_buffer=';'.join(etat['image_buffer']),
+        image_buffer=';'.join(str(x) for x in etat['image_buffer']),
     )
 
 def sauvegarder_aide(aide):
@@ -61,6 +61,11 @@ def sauvegarder_winners(winners):
     ecrire_info.ecrire_winners_sqlite(''.join(str(x) for x in winners))
 
 if __name__ == "__main__":
+    for i in range(1, 40):
+        data = construire_fiak(i)
+        print(data.getImgUrl())
+
+'''
     fiak_init = construire_fiak(1)
     fiak_init.ajoutWinner(222)
     fiak_init.ajoutWinner(333)
@@ -79,3 +84,4 @@ if __name__ == "__main__":
         print(fiak_val.getPerso())
         print(fiak_val.getZoom())
         print(fiak_val.getWinners())
+'''

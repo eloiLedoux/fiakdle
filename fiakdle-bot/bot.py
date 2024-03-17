@@ -5,6 +5,7 @@ from discord.ext.commands import has_permissions, MissingPermissions
 import json
 import datetime
 from random import randint
+from random import choice
 
 import construire_info
 import ecrire_info
@@ -17,7 +18,7 @@ with open('config.json', 'r') as cfg:
   data = json.load(cfg) 
 TOKEN = data["token"]
 DEFAULT_ID = 1
-NB_IMAGES_BDD = 11
+NB_IMAGES_BDD = 38
 
 utc = datetime.timezone.utc #Attention, c'est l'heure anglaise donc -1h par rapport à la France
 premiere_heure_int = 23
@@ -28,7 +29,7 @@ heure_premiere_aide = datetime.time(hour=premiere_heure_int, tzinfo=utc)
 heure_deuxieme_aide = datetime.time(hour=deuxieme_heure_int, tzinfo=utc)
 heure_troisieme_aide = datetime.time(hour=troisieme_heure_int, tzinfo=utc)
 heure_quatrieme_aide = datetime.time(hour=quatrieme_heure_int, tzinfo=utc)
-heure_reset = datetime.time(hour=22, minute=59, tzinfo=utc)
+heure_reset = datetime.time(hour=22, minute=59, second=45, tzinfo=utc)
 
 reponse_absence_channel = "Aucun channel n'a été assigné pour le jeu."
 reponse_mauvais_channel = "Le jeu se déroule dans un autre channel."
@@ -41,6 +42,26 @@ bot = discord.Bot()
 
 fiakjour_url = "../images/fiak-du-jour.jpg"
 fiak = construire_info.recuperer_etat()
+now = datetime.datetime.now(tz=utc)
+premiere_heure = now.replace(hour=premiere_heure_int)
+deuxieme_heure = now.replace(hour=deuxieme_heure_int)
+troisieme_heure = now.replace(hour=troisieme_heure_int)
+quatrieme_heure = now.replace(hour=quatrieme_heure_int)
+if now >= premiere_heure:
+    fiak.setAide(0) #Suppérieur à 23h (ce qui ne sera plus le cas à minuit)
+    construire_info.sauvegarder_aide(0)
+elif now >= quatrieme_heure:
+    fiak.setAide(3) #Suppérieur à 22h
+    construire_info.sauvegarder_aide(3)
+elif now >= troisieme_heure:
+    fiak.setAide(2) #Suppérieur à 17h
+    construire_info.sauvegarder_aide(2)
+elif now >= deuxieme_heure:
+    fiak.setAide(1) #Suppérieur à 11h
+    construire_info.sauvegarder_aide(1)
+else:
+    fiak.setAide(0) #Après minuit, inférieur à 23h mais 0 quand même car inférieur à 11h
+    construire_info.sauvegarder_aide(0)
 
 #COMMANDS
 
@@ -187,16 +208,17 @@ async def set_reset():
 
         fiak.clearWinner()
 
-        new_id = randint(1, NB_IMAGES_BDD)
+        new_id = choice([i for i in range(0,NB_IMAGES_BDD) if not fiak.estDansBuffer(i)])
+        fiak.ajoutBuffer(new_id)
         construire_info.update_fiak(fiak, new_id)
         construire_info.sauvegarder_etat(fiak)
 
 #EXEC
 
-bot.run(TOKEN)
 send_message_a0.start()
 send_message_a1.start()
 send_message_a2.start()
 send_message_a3.start()
 set_reset.start()
 fiak.setJeuEnCours(True)
+bot.run(TOKEN)
