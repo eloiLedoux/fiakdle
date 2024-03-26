@@ -1,11 +1,12 @@
 from construire_info import construire_fiak
 from cropper import crop_image
+from construire_info import nb_images_bdd
 
-NB_IMAGES_BDD = 38
+nb_images_bdd = nb_images_bdd()
 
 if __name__ == "__main__":
 
-    for id in range(1,NB_IMAGES_BDD+1):
+    for id in range(1,nb_images_bdd+1):
         img_save_url = "tests_images/f"+str(id)+"_z"
         print(img_save_url)
         fiaks_totest = construire_fiak(id)

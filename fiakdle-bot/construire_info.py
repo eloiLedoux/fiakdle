@@ -60,7 +60,11 @@ def sauvegarder_aide(aide):
 def sauvegarder_winners(winners):
     ecrire_info.ecrire_winners_sqlite(''.join(str(x) for x in winners))
 
+def nb_images_bdd():
+    return recup_info.requete_nb_images()
+
 if __name__ == "__main__":
+    print(nb_images_bdd())
     for i in range(1, 40):
         data = construire_fiak(i)
         print(data.getImgUrl())

@@ -18,7 +18,6 @@ with open('config.json', 'r') as cfg:
   data = json.load(cfg) 
 TOKEN = data["token"]
 DEFAULT_ID = 1
-NB_IMAGES_BDD = 38
 
 utc = datetime.timezone.utc #Attention, c'est l'heure anglaise donc -1h par rapport à la France
 premiere_heure_int = 23
@@ -68,7 +67,8 @@ else:
 @bot.command(description="Défini le channel comme channel de jeu.")
 @has_permissions(administrator=True)
 async def channelid(ctx):
-    new_id = randint(1, NB_IMAGES_BDD)
+    nb_images = construire_info.nb_images_bdd()
+    new_id = randint(1, nb_images)
     construire_info.update_fiak(fiak, new_id)
 
     fiak.setChannelJeu(ctx.channel.id)
@@ -208,7 +208,8 @@ async def set_reset():
 
         fiak.clearWinner()
 
-        new_id = choice([i for i in range(0,NB_IMAGES_BDD) if not fiak.estDansBuffer(i)])
+        nb_images = construire_info.nb_images_bdd()
+        new_id = choice([i for i in range(0,nb_images) if not fiak.estDansBuffer(i)])
         fiak.ajoutBuffer(new_id)
         construire_info.update_fiak(fiak, new_id)
         construire_info.sauvegarder_etat(fiak)

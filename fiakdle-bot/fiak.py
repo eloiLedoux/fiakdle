@@ -64,7 +64,7 @@ class Fiak:
         return True if self.winners_id else False
 
     def ajoutBuffer(self, image):
-        if len(self.image_buffer) > NB_IMAGES_BDD // 3:
+        if len(self.image_buffer) > 30:
             self.image_buffer.pop(0)
         self.image_buffer.append(image)
 

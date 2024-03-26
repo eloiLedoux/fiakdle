@@ -38,7 +38,17 @@ def requete_etat_sqlite():
     con.close()
     return data
 
+def requete_nb_images():
+    con = sqlite3.connect(DB_URL)
+    cur = con.cursor()
+    requete = "SELECT COUNT(*) FROM fiak;"
+    cur.execute(requete)
+    data = cur.fetchone()
+    con.close()
+    return data[0]
+
 if __name__ == "__main__":
+    print(requete_nb_images())
     for i in range(0, 40):
         data = requete_data_sqlite(i)
         print(data)
