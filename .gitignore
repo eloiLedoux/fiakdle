@@ -1,9 +1,13 @@
 __pycache__/
+images/
+tests_images/
+
+*.db
+
 data.json
 config.json
 dbconfig.json
 save.json
+
 demo.py
-images/
-database/
-tests_images/
+
