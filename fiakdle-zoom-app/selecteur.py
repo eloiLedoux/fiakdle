@@ -25,11 +25,10 @@ class Main(object):
 
         # Retrieve image
         image = Image.open("./imageTest/test.png")
-        image = image.resize((800, 700), Image.LANCZOS)
         photo = ImageTk.PhotoImage(image)
 
         # Create canvas
-        self.canvas = Canvas(right_frame, width=800, height=700)
+        self.canvas = Canvas(right_frame, width=image.width, height=image.height)
         self.canvas.create_image(0, 0, image=photo, anchor="nw")
         self.canvas.pack()
         self.canvas.bind("<ButtonPress-1>", self.on_button_press)
