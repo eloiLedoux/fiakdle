@@ -36,7 +36,7 @@ class Main(object):
         mainloop()
 
     def on_button_press(self, event):
-        python_green = self.color_switch()
+        color = self.color_switch()
 
         print(event.x, event.y)
         self.coord_list.append(event.x)
@@ -52,7 +52,7 @@ class Main(object):
         else:
             self.first_click = True
         
-        self.canvas.create_oval(event.x, event.y, event.x, event.y, fill=python_green, outline=python_green, width=10)
+        self.canvas.create_oval(event.x, event.y, event.x, event.y, fill=color, outline=color, width=10)
 
     def color_switch(self):
         return COLOR_LIST[self.aide_lvl]
@@ -81,6 +81,5 @@ class Main(object):
         
         return coord_data
 
-(68,38,281,226);(47,29,306,336);(30,17,387,349);(2,3,523,372)
 if __name__ == "__main__":
     Main().main()
