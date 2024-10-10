@@ -12,6 +12,7 @@ class Main(object):
 
     def __init__(self):
         self.canvas      = None
+        self.img_name    = ""
         self.coord_list  = []
         self.aide_lvl    = 0
         self.first_click = False
@@ -25,6 +26,8 @@ class Main(object):
 
         # Retrieve image
         image = Image.open("./imageTest/test.png")
+        #Recupere le nom de l'image sans l'extension
+        self.img_name = image.filename.split('\\')[-1].split('.')[0]
         photo = ImageTk.PhotoImage(image)
 
         # Create canvas
@@ -47,7 +50,7 @@ class Main(object):
             self.aide_lvl = (self.aide_lvl + 1) % 4
             
             if (self.aide_lvl == 0):
-                print(self.afficher_zoom())
+                print(f"{self.img_name} => {self.afficher_zoom()}")
                 self.coord_list.clear()
         else:
             self.first_click = True
