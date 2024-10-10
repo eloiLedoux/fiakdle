@@ -49,7 +49,7 @@ def requete_nb_images():
 
 if __name__ == "__main__":
     print(requete_nb_images())
-    for i in range(0, 40):
+    for i in range(0, 70):
         data = requete_data_sqlite(i)
         print(data)
 

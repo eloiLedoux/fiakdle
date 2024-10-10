@@ -42,21 +42,28 @@ class Fen(Tk):
 
         self.buttonValid = Button(self, text='valid')
         self.buttonValid.grid(row=5, column=3)
+    
     def showImage(self,path):
         imgBase = Image.open(path)
+        
         width, height = imgBase.width, imgBase.height
-        print(width, height)
+        print(f"width:{width}, height:{height}")
+        
         ratioWidth = width / self.can.winfo_width()
         ratioHeight = height / self.can.winfo_height()
-        print(ratioWidth, ratioHeight)
+        print(f"ratioWidth:{ratioWidth}, ratioHeight:{ratioHeight}")
+        
         if ratioWidth > ratioHeight:
             imgBase = imgBase.resize((ceil(width/ratioWidth), ceil(height/ratioWidth)))
         else:
             imgBase = imgBase.resize((ceil(width/ratioHeight), ceil(height/ratioHeight)))
+        
         img = ImageTk.PhotoImage(imgBase)
         width, height = img.width(), img.height()
-        print(width, height)
+        print(f"new width:{width}, new height:{height}")
+        
         self.can.create_image(self.can.winfo_width()/2, self.can.winfo_height()/2, image=img)
+        
         self.mainloop()
 
     def imageOnClick(self, e):
