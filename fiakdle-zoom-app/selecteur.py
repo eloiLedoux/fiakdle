@@ -1,4 +1,6 @@
+import os
 from tkinter import *
+from tkinter import filedialog
 from PIL import Image, ImageTk
 
 RED    = "#ff0000"
@@ -7,6 +9,8 @@ BLUE   = "#3333cc"
 PURPLE = "#cc0099"
 
 COLOR_LIST = [RED, GREEN, BLUE, PURPLE]
+
+IMAGES_DIR = "./imageTest/"
 
 class Main(object):
 
@@ -25,7 +29,9 @@ class Main(object):
         right_frame.pack(side=LEFT)
 
         # Retrieve image
-        image = Image.open("./imageTest/test.png")
+        img_filename = self.openImage()
+        print(img_filename)
+        image = Image.open(img_filename)
         #Recupere le nom de l'image sans l'extension
         self.img_name = image.filename.split('\\')[-1].split('.')[0]
         photo = ImageTk.PhotoImage(image)
@@ -83,6 +89,11 @@ class Main(object):
                 token_zoom = (token_zoom + 1) % 4
         
         return coord_data
+
+    def openImage(self):
+        filename = filedialog.askopenfilename(initialdir=IMAGES_DIR, title="Select an image", filetypes=(("png files", "*.png"), ("jpeg files", "*.jpg")))
+
+        return filename
 
 if __name__ == "__main__":
     Main().main()
