@@ -3,6 +3,9 @@ from tkinter import *
 from tkinter import filedialog
 from PIL import Image, ImageTk
 
+B_FRAME_WIDTH  = 125
+B_FRAME_HEIGHT = 10
+
 RED    = "#ff0000"
 GREEN  = "#00cc00"
 BLUE   = "#3333cc"
@@ -21,23 +24,30 @@ class Main(object):
         self.aide_lvl    = 0
         self.first_click = False
 
-    def main(self):
-        master = Tk()
+        self.master = Tk()
+        self.img_frame = None
+        self.button = None
 
-        # Right side of the screen / image holder
-        right_frame = Frame(master, width=500, height=500, cursor="dot")
-        right_frame.pack(side=LEFT)
+    def main(self):
+        self.img_frame = Frame(self.master, width=B_FRAME_WIDTH, height=B_FRAME_HEIGHT, cursor="cross")
+        self.img_frame.grid(row=1, column=0, padx=0, pady=0) 
+        self.button = Button(self.master, text ="Hello", command = self.button_callback)
+        self.button.grid(row=0, column=0,sticky=NSEW, padx=0, pady=0)
 
         # Retrieve image
         img_filename = self.openImage()
         print(img_filename)
         image = Image.open(img_filename)
+        if(image.width>500 or image.height>500):
+            image.thumbnail((500,500), Image.LANCZOS)
         #Recupere le nom de l'image sans l'extension
         self.img_name = image.filename.split('\\')[-1].split('.')[0]
         photo = ImageTk.PhotoImage(image)
 
         # Create canvas
-        self.canvas = Canvas(right_frame, width=image.width, height=image.height)
+        self.img_frame = Frame(self.master, width=image.width, height=image.height, cursor="cross")
+        self.img_frame.grid(row=1, column=0, padx=0, pady=0) 
+        self.canvas = Canvas(self.img_frame, width=image.width-5, height=image.height-5)
         self.canvas.create_image(0, 0, image=photo, anchor="nw")
         self.canvas.pack()
         self.canvas.bind("<ButtonPress-1>", self.on_button_press)
@@ -94,6 +104,9 @@ class Main(object):
         filename = filedialog.askopenfilename(initialdir=IMAGES_DIR, title="Select an image", filetypes=(("png files", "*.png"), ("jpeg files", "*.jpg")))
 
         return filename
+
+    def button_callback(self):
+        print(self.aide_lvl)
 
 if __name__ == "__main__":
     Main().main()
