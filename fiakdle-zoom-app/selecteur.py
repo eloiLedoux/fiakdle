@@ -28,12 +28,24 @@ class Main(object):
         self.img_frame = None
         self.button = None
 
-    def main(self):
+    def ouvrir_image(self):
+        if self.canvas != None:
+            self.canvas.delete("all")
+        if self.master != None:
+            for widget in self.master.winfo_children():
+                widget.destroy()
+
+                self.canvas      = None
+        self.img_name    = ""
+        self.coord_list  = []
+        self.aide_lvl    = 0
+        self.first_click = False
+
         self.img_frame = Frame(self.master, width=B_FRAME_WIDTH, height=B_FRAME_HEIGHT, cursor="cross")
         self.img_frame.grid(row=1, column=0, padx=0, pady=0) 
-        self.button = Button(self.master, text ="Hello", command = self.button_callback)
+        self.button = Button(self.master, text ="Ouvrir image", command = self.ouvrir_image)
         self.button.grid(row=0, column=0,sticky=NSEW, padx=0, pady=0)
-
+        
         # Retrieve image
         img_filename = self.openImage()
         print(img_filename)
@@ -51,6 +63,15 @@ class Main(object):
         self.canvas.create_image(0, 0, image=photo, anchor="nw")
         self.canvas.pack()
         self.canvas.bind("<ButtonPress-1>", self.on_button_press)
+
+        mainloop()
+
+
+    def main(self):
+        self.img_frame = Frame(self.master, width=B_FRAME_WIDTH, height=B_FRAME_HEIGHT, cursor="cross")
+        self.img_frame.grid(row=1, column=0, padx=0, pady=0) 
+        self.button = Button(self.master, text ="Ouvrir image", command = self.ouvrir_image)
+        self.button.grid(row=0, column=0,sticky=NSEW, padx=0, pady=0)
 
         mainloop()
 
