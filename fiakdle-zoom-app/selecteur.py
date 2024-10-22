@@ -5,6 +5,7 @@ from PIL import Image, ImageTk
 
 B_FRAME_WIDTH  = 125
 B_FRAME_HEIGHT = 10
+MAX_IMG_WIDTH = 500
 
 RED    = "#ff0000"
 GREEN  = "#00cc00"
@@ -55,12 +56,17 @@ class Main(object):
         print(img_filename)
         image = Image.open(img_filename)
         
-        if(image.width>500 or image.height>500):
-            image.thumbnail((500,500), Image.LANCZOS)
-        
         #Recupere le nom de l'image sans l'extension
+        img_filename  = image.filename 
         self.img_name = image.filename.split('\\')[-1].split('.')[0]
-        photo         = ImageTk.PhotoImage(image)
+
+        if(image.width>MAX_IMG_WIDTH or image.height>MAX_IMG_WIDTH):
+            wpercent = (MAX_IMG_WIDTH / float(image.size[0]))
+            hsize    = int((float(image.size[1]) * float(wpercent)))
+            image    = image.resize((MAX_IMG_WIDTH, hsize), Image.Resampling.LANCZOS)
+            image.save(img_filename)
+        
+        photo = ImageTk.PhotoImage(image)
 
         # Create canvas
         self.img_frame = Frame(self.master, width=image.width, height=image.height, cursor="cross")
