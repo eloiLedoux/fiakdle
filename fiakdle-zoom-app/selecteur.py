@@ -25,17 +25,20 @@ class Main(object):
         self.first_click = False
 
         self.master = Tk()
+        self.master.resizable(False, False)
+
         self.img_frame = None
-        self.button = None
+        self.button    = None
 
     def ouvrir_image(self):
         if self.canvas != None:
             self.canvas.delete("all")
+
         if self.master != None:
             for widget in self.master.winfo_children():
                 widget.destroy()
+                self.canvas = None
 
-                self.canvas      = None
         self.img_name    = ""
         self.coord_list  = []
         self.aide_lvl    = 0
@@ -43,22 +46,26 @@ class Main(object):
 
         self.img_frame = Frame(self.master, width=B_FRAME_WIDTH, height=B_FRAME_HEIGHT, cursor="cross")
         self.img_frame.grid(row=1, column=0, padx=0, pady=0) 
+        
         self.button = Button(self.master, text ="Ouvrir image", command = self.ouvrir_image)
         self.button.grid(row=0, column=0,sticky=NSEW, padx=0, pady=0)
         
         # Retrieve image
-        img_filename = self.openImage()
+        img_filename = self.lire_nom_image()
         print(img_filename)
         image = Image.open(img_filename)
+        
         if(image.width>500 or image.height>500):
             image.thumbnail((500,500), Image.LANCZOS)
+        
         #Recupere le nom de l'image sans l'extension
         self.img_name = image.filename.split('\\')[-1].split('.')[0]
-        photo = ImageTk.PhotoImage(image)
+        photo         = ImageTk.PhotoImage(image)
 
         # Create canvas
         self.img_frame = Frame(self.master, width=image.width, height=image.height, cursor="cross")
         self.img_frame.grid(row=1, column=0, padx=0, pady=0) 
+        
         self.canvas = Canvas(self.img_frame, width=image.width-5, height=image.height-5)
         self.canvas.create_image(0, 0, image=photo, anchor="nw")
         self.canvas.pack()
@@ -66,10 +73,10 @@ class Main(object):
 
         mainloop()
 
-
     def main(self):
         self.img_frame = Frame(self.master, width=B_FRAME_WIDTH, height=B_FRAME_HEIGHT, cursor="cross")
         self.img_frame.grid(row=1, column=0, padx=0, pady=0) 
+        
         self.button = Button(self.master, text ="Ouvrir image", command = self.ouvrir_image)
         self.button.grid(row=0, column=0,sticky=NSEW, padx=0, pady=0)
 
@@ -87,7 +94,7 @@ class Main(object):
             self.aide_lvl = (self.aide_lvl + 1) % 4
             
             if (self.aide_lvl == 0):
-                print(f"{self.img_name} => {self.afficher_zoom()}")
+                self.save_coords()
                 self.coord_list.clear()
         else:
             self.first_click = True
@@ -118,16 +125,19 @@ class Main(object):
             token_data = (token_data + 1) % 4
             if (token_data == 0):
                 token_zoom = (token_zoom + 1) % 4
-        
+
         return coord_data
 
-    def openImage(self):
+    def lire_nom_image(self):
         filename = filedialog.askopenfilename(initialdir=IMAGES_DIR, title="Select an image", filetypes=(("png files", "*.png"), ("jpeg files", "*.jpg")))
-
         return filename
 
-    def button_callback(self):
-        print(self.aide_lvl)
+    def save_coords(self):
+        print(f"{self.img_name} => {self.afficher_zoom()}")
+
+        with open('output.txt', 'a+') as f:
+            print(f"{self.img_name} => ../images/{self.img_name} => {self.afficher_zoom()}", file=f)
+    
 
 if __name__ == "__main__":
     Main().main()
