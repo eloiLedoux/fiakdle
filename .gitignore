@@ -4,6 +4,8 @@ images/
 tests_images/
 
 *.db
+*.sql
+*.png
 
 data.json
 config.json
