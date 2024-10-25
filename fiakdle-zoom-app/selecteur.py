@@ -142,7 +142,7 @@ class Main(object):
         print(f"{self.img_name} => {self.afficher_zoom()}")
 
         with open('output.txt', 'a+') as f:
-            print(f"{self.img_name} => ../images/{self.img_name} => {self.afficher_zoom()}", file=f)
+            print(f"{self.img_name} => ../images/{self.img_name}.jpg => {self.afficher_zoom()}", file=f)
     
 
 if __name__ == "__main__":
