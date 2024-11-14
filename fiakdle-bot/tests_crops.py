@@ -1,5 +1,5 @@
 from construire_info import construire_fiak
-from cropper import crop_image
+from cropper         import crop_image
 from construire_info import nb_images_bdd
 
 nb_images_bdd = nb_images_bdd()

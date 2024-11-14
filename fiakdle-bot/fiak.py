@@ -1,8 +1,8 @@
 NB_IMAGES_BDD = 11
 
 class Fiak:
-    def __init__(self, img_url, nom_perso, nom_manga, zoom, niveau_aide = -1, channel_jeu = None, jeu_en_cours = False, winners_id = [], image_buffer = []):
-        self.img_url = img_url
+    def __init__(self, img_id, nom_perso, nom_manga, zoom, niveau_aide = -1, channel_jeu = None, jeu_en_cours = False, winners_id = [], image_buffer = []):
+        self.img_id  = img_id 
 
         #Liste de noms acceptés (permet de gérer le cas où plusieurs écritures
         #sont possibles pour un même perso, ex : Luffy, luffy, monkeydluffy, monkeyluffy).
@@ -21,7 +21,7 @@ class Fiak:
 
     def recuperer_etat_fiak(self):
         etat = {
-            'img_url' : self.img_url,
+            'img_id' : self.img_id,
             'nom_perso' : self.nom_perso,
             'nom_manga' : self.nom_manga,
             'zoom' : self.zoom,
@@ -42,11 +42,11 @@ class Fiak:
             return True, False
         return False, False
 
-    def update_fiak(self, img_url, nom_perso, nom_manga, zoom):
-        self.img_url = img_url
+    def update_fiak(self, img_id, nom_perso, nom_manga, zoom):
+        self.img_id    = img_id
         self.nom_perso = nom_perso
         self.nom_manga = nom_manga
-        self.zoom = zoom
+        self.zoom      = zoom
     
     def augmenterAide(self):
         self.niveau_aide = (self.niveau_aide + 1) % 4
@@ -76,8 +76,11 @@ class Fiak:
     def clearBuffer(self):
         self.image_buffer.clear()
 
+    def getImgId(self):
+        return self.img_id
+
     def getImgUrl(self):
-        return self.img_url
+        return f'../images/{self.img_id}.jpg'
 
     def getAide(self):
         return self.niveau_aide

@@ -20,8 +20,8 @@ def crop_image(input_image_path, output_image_path, coordinates):
 
 # Example usage:
 if __name__ == "__main__":
-    input_image_path = "./images/hiboux.png"
+    input_image_path  = "./images/hiboux.png"
     output_image_path = "./images/cropped_hiboux.png"
-    coordinates = (74,237,490,522)  # (left, upper, right, lower)
+    coordinates       = (74,237,490,522)  # (left, upper, right, lower)
 
     crop_image(input_image_path, output_image_path, coordinates)
