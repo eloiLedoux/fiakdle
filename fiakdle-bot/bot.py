@@ -27,46 +27,24 @@ with open('config.json', 'r') as cfg:
   # Deserialize the JSON data (essentially turning it into a Python dictionary object so we can use it in our code) 
   data = json.load(cfg) 
 TOKEN      = data["token"]
-DEFAULT_ID = 1
 
 #Attention, c'est l'heure anglaise donc -1h par rapport à la France
 utc = datetime.timezone.utc 
-
-premiere_heure_int  = 23
-deuxieme_heure_int  = 11
-troisieme_heure_int = 17
-quatrieme_heure_int = 22
-
-heure_premiere_aide  = datetime.time(hour=premiere_heure_int, tzinfo=utc)
-heure_deuxieme_aide  = datetime.time(hour=deuxieme_heure_int, tzinfo=utc)
-heure_troisieme_aide = datetime.time(hour=troisieme_heure_int, tzinfo=utc)
-heure_quatrieme_aide = datetime.time(hour=quatrieme_heure_int, tzinfo=utc)
-heure_reset          = datetime.time(hour=22, minute=59, second=45, tzinfo=utc)
-
-now             = datetime.datetime.now(tz=utc)
-premiere_heure  = now.replace(hour=premiere_heure_int)
-deuxieme_heure  = now.replace(hour=deuxieme_heure_int)
-troisieme_heure = now.replace(hour=troisieme_heure_int)
-quatrieme_heure = now.replace(hour=quatrieme_heure_int)
+HEURES_AIDE = [23, 11, 17, 22]
+heure_reset = datetime.time(hour=22, minute=59, second=45, tzinfo=utc)
 
 fiakjour_url = "../images/fiak-du-jour.jpg"
 fiak         = construire_info.recuperer_etat()
 
-if now >= premiere_heure:
-    fiak.setAide(0) #Supérieur à 23h (ce qui ne sera plus le cas à minuit)
-    construire_info.sauvegarder_aide(0)
-elif now >= quatrieme_heure:
-    fiak.setAide(3) #Supérieur à 22h
-    construire_info.sauvegarder_aide(3)
-elif now >= troisieme_heure:
-    fiak.setAide(2) #Supérieur à 17h
-    construire_info.sauvegarder_aide(2)
-elif now >= deuxieme_heure:
-    fiak.setAide(1) #Supérieur à 11h
-    construire_info.sauvegarder_aide(1)
-else:
-    fiak.setAide(0) #Après minuit, inférieur à 23h mais 0 quand même car inférieur à 11h
-    construire_info.sauvegarder_aide(0)
+# Fonction de mise à jour de l'aide en fonction de l'heure
+def mise_a_jour_aide():
+    now = datetime.datetime.now(tz=utc)
+    for idx, heure in enumerate(HEURES_AIDE):
+        if now.hour >= heure:
+            fiak.setAide(idx)
+            construire_info.sauvegarder_aide(idx)
+            return 0
+    fiak.setAide(0)  # Si aucune heure correspond
 
 #Bot starting
 bot = discord.Bot()
@@ -83,24 +61,7 @@ async def channelid(ctx):
     fiak.setChannelJeu(ctx.channel.id)
     fiak.clearWinner()
 
-    #Duplication de code : a refacto ~~~
-    now             = datetime.datetime.now(tz=utc)
-    premiere_heure  = now.replace(hour=premiere_heure_int)
-    deuxieme_heure  = now.replace(hour=deuxieme_heure_int)
-    troisieme_heure = now.replace(hour=troisieme_heure_int)
-    quatrieme_heure = now.replace(hour=quatrieme_heure_int)
-    
-    if now >= premiere_heure:
-        fiak.setAide(0) #Supérieur à 23h (ce qui ne sera plus le cas à minuit)
-    elif now >= quatrieme_heure:
-        fiak.setAide(3) #Supérieur à 22h
-    elif now >= troisieme_heure:
-        fiak.setAide(2) #Supérieur à 17h
-    elif now >= deuxieme_heure:
-        fiak.setAide(1) #Supérieur à 11h
-    else:
-        fiak.setAide(0) #Après minuit, inférieur à 23h mais 0 quand même car inférieur à 11h
-    #~~~
+    mise_a_jour_aide()
 
     construire_info.sauvegarder_etat(fiak)
 
@@ -160,49 +121,23 @@ async def reponse(ctx, personnage, manga):
 
 #TASKS
 
-@tasks.loop(time=heure_premiere_aide)
-async def send_message_a0():
+# Envoi d'une aide pour l'heure donnée
+async def envoi_aide(channel, index):
+    fiak.setAide(index)
+    construire_info.sauvegarder_aide(index)
+    cropper.crop_image(fiak.getImgUrl(), fiakjour_url, fiak.getZoom())
+    
+    await channel.send(file=discord.File(fiakjour_url))
+
+# Tâche unique qui envoie l'aide à des heures définies
+@tasks.loop(time=[datetime.time(hour=h, tzinfo=utc) for h in HEURES_AIDE])
+async def send_message_aide():
     if fiak.hasChannelJeu():
-        channel = bot.get_channel(fiak.getChannelJeu())
-
-        fiak.setAide(0) #Suppérieur à 23h (ce qui ne sera plus le cas à minuit)
-        construire_info.sauvegarder_aide(0)
-
-        cropper.crop_image(fiak.getImgUrl(), fiakjour_url, fiak.getZoom())
-        await channel.send(file=discord.File(fiakjour_url))
-
-@tasks.loop(time=heure_deuxieme_aide)
-async def send_message_a1():
-    if fiak.hasChannelJeu():
-        channel = bot.get_channel(fiak.getChannelJeu())
-
-        fiak.setAide(1) #Suppérieur à 11h
-        construire_info.sauvegarder_aide(1)
-
-        cropper.crop_image(fiak.getImgUrl(), fiakjour_url, fiak.getZoom())
-        await channel.send(file=discord.File(fiakjour_url))
-
-@tasks.loop(time=heure_troisieme_aide)
-async def send_message_a2():
-    if fiak.hasChannelJeu():
-        channel = bot.get_channel(fiak.getChannelJeu())
-
-        fiak.setAide(2) #Suppérieur à 17h
-        construire_info.sauvegarder_aide(2)
-
-        cropper.crop_image(fiak.getImgUrl(), fiakjour_url, fiak.getZoom())
-        await channel.send(file=discord.File(fiakjour_url))
-
-@tasks.loop(time=heure_quatrieme_aide)
-async def send_message_a3():
-    if fiak.hasChannelJeu():
-        channel = bot.get_channel(fiak.getChannelJeu())
-
-        fiak.setAide(3) #Suppérieur à 22h
-        construire_info.sauvegarder_aide(3)
-
-        cropper.crop_image(fiak.getImgUrl(), fiakjour_url, fiak.getZoom())
-        await channel.send(file=discord.File(fiakjour_url))
+        channel  = bot.get_channel(fiak.getChannelJeu())
+        now_hour = datetime.datetime.now(tz=utc).hour
+        index    = HEURES_AIDE.index(now_hour) if now_hour in HEURES_AIDE else 0
+        
+        await envoi_aide(channel, index)
 
 @tasks.loop(time=heure_reset)
 async def set_reset():
@@ -228,10 +163,8 @@ async def set_reset():
 
 #EXEC
 
-send_message_a0.start()
-send_message_a1.start()
-send_message_a2.start()
-send_message_a3.start()
+mise_a_jour_aide()
+send_message_aide.start()
 set_reset.start()
 fiak.setJeuEnCours(True)
 bot.run(TOKEN)
