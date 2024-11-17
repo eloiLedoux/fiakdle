@@ -22,11 +22,11 @@ def dict_factory(cursor, row):
     
     return d
 
-def requete_data_sqlite(id):
+def requete_id(db_name, id):
     con             = sqlite3.connect(DB_URL)
     con.row_factory = dict_factory
     cur             = con.cursor()
-    requete         = "SELECT * FROM fiak WHERE id="+str(id)
+    requete         = f"SELECT * FROM {str(db_name)} WHERE id={str(id)}"
     
     cur.execute(requete)
     data = cur.fetchone()
@@ -34,17 +34,14 @@ def requete_data_sqlite(id):
     
     return data
 
+def requete_data_sqlite(id):
+    return requete_id("fiak", id)
+
+def requete_user_sqlite(id):
+    return requete_id("user", id)
+
 def requete_etat_sqlite():
-    con             = sqlite3.connect(DB_URL)
-    con.row_factory = dict_factory
-    cur             = con.cursor()
-    requete         = "SELECT * FROM etat WHERE id="+str(ID_ETAT)
-    
-    cur.execute(requete)
-    data = cur.fetchone()
-    con.close()
-    
-    return data
+    return requete_id("etat", ID_ETAT)
 
 def requete_nb_images():
     con     = sqlite3.connect(DB_URL)
@@ -59,15 +56,6 @@ def requete_nb_images():
 
 if __name__ == "__main__":
     print(requete_nb_images())
-    for i in range(0, 70):
+    for i in range(0, 10):
         data = requete_data_sqlite(i)
         print(data)
-
-'''
-    data_json = requete_data_jsonfile()
-    data = requete_data_sqlite(1)
-    etat = requete_etat_sqlite()
-    print(data_json)
-    print(data)
-    print(etat)
-'''
