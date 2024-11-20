@@ -50,6 +50,22 @@ def mise_a_jour_aide():
 bot = discord.Bot()
 
 #COMMANDS
+async def channel_setup(ctx):
+    channel_name = 'fiakdle-game'
+    guild        = ctx.guild
+
+    #  On supprime le channel précédent
+    existing_channel = discord.utils.get(guild.channels, name=channel_name)
+    if existing_channel is not None:
+        await ctx.respond(f'Channel named "{channel_name}" already exists.', ephemeral=True)
+        return existing_channel
+    else:
+        #  On en créé un nouveau
+        channel = await guild.create_text_channel(channel_name)
+        await ctx.respond(f'Channel named "{channel_name}" was created.', ephemeral=True)
+        fiak.setChannelJeu(channel.id)
+        return channel
+
 
 @bot.command(description="Défini le channel comme channel de jeu.")
 @has_permissions(administrator=True)
@@ -58,16 +74,16 @@ async def channelid(ctx):
     new_id    = randint(1, nb_images)
     construire_info.update_fiak(fiak, new_id)
 
-    fiak.setChannelJeu(ctx.channel.id)
+    channel = await channel_setup(ctx)
     fiak.clearWinner()
 
     mise_a_jour_aide()
 
     construire_info.sauvegarder_etat(fiak)
 
-    await ctx.respond(reponse_set_channel_jeu)
+    await channel.send(reponse_set_channel_jeu)
     cropper.crop_image(fiak.getImgUrl(), fiakjour_url, fiak.getZoom())
-    await ctx.respond(file=discord.File(fiakjour_url))
+    await channel.send(file=discord.File(fiakjour_url))
 
 @bot.command(description="Affiche la liste des winners.")
 async def winners(ctx):
