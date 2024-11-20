@@ -26,11 +26,11 @@ reponse_erreur_inconnue = "Erreur inconnue."
 with open('config.json', 'r') as cfg:
   # Deserialize the JSON data (essentially turning it into a Python dictionary object so we can use it in our code) 
   data = json.load(cfg) 
-TOKEN      = data["token"]
+TOKEN = data["token"]
 
 #Attention, c'est l'heure anglaise donc -1h par rapport à la France
-utc = datetime.timezone.utc 
 HEURES_AIDE = [23, 11, 17, 22]
+utc         = datetime.timezone.utc 
 heure_reset = datetime.time(hour=22, minute=59, second=45, tzinfo=utc)
 
 fiakjour_url = "../images/fiak-du-jour.jpg"
@@ -49,7 +49,9 @@ def mise_a_jour_aide():
 #Bot starting
 bot = discord.Bot()
 
-#COMMANDS
+
+#FUNCTIONS
+
 async def channel_setup(ctx):
     channel_name = 'fiakdle-game'
     guild        = ctx.guild
@@ -66,10 +68,11 @@ async def channel_setup(ctx):
         fiak.setChannelJeu(channel.id)
         return channel
 
+#COMMANDS
 
-@bot.command(description="Défini le channel comme channel de jeu.")
+@bot.command(description="Setup le channel de jeu.")
 @has_permissions(administrator=True)
-async def channelid(ctx):
+async def setup(ctx):
     nb_images = construire_info.nb_images_bdd()
     new_id    = randint(1, nb_images)
     construire_info.update_fiak(fiak, new_id)
@@ -85,7 +88,7 @@ async def channelid(ctx):
     cropper.crop_image(fiak.getImgUrl(), fiakjour_url, fiak.getZoom())
     await channel.send(file=discord.File(fiakjour_url))
 
-@bot.command(description="Affiche la liste des winners.")
+@bot.command(description="Affiche la liste des gagnants.")
 async def winners(ctx):
     if fiak.hasWinner():
         liste_winners_str = '```Liste des gagnants :\n'
@@ -130,8 +133,7 @@ async def reponse(ctx, personnage, manga):
             else:
                 await ctx.respond(f"Pas le bon personnage, pas le bon manga...")
         else:
-            #await ctx.respond(reponse_mauvais_channel, ephemeral=True)
-            await ctx.respond(f"Channel jeu : {fiak.getChannelJeu()}, channel actuel : {ctx.channel.id}", ephemeral=True)
+            await ctx.respond(f"Mauvais channel !\nchannel de jeu : fiakdle-game\nchannel actuel : {ctx.channel}", ephemeral=True)
     else:
         await ctx.respond(reponse_absence_channel, ephemeral=True)
 
