@@ -1,6 +1,6 @@
 #Discord necessary imports
 import discord
-from discord.ext          import tasks
+from discord.ext          import tasks, commands
 from discord.ext.commands import has_permissions, MissingPermissions
 
 #Auxyliary imports
@@ -52,21 +52,45 @@ bot = discord.Bot()
 
 #FUNCTIONS
 
-async def channel_setup(ctx):
-    channel_name = 'fiakdle-game'
-    guild        = ctx.guild
+async def channels_setup(ctx, role):
+    register_channel_name = 'fiakdle-game'
+    game_channel_name     = 'fiakdle-secret-game' 
+    guild                 = ctx.guild
 
-    #  On supprime le channel précédent
-    existing_channel = discord.utils.get(guild.channels, name=channel_name)
-    if existing_channel is not None:
-        await ctx.respond(f'Channel named "{channel_name}" already exists.', ephemeral=True)
-        return existing_channel
+    #  Channel d'inscription
+    existing_register_channel = discord.utils.get(guild.channels, name=register_channel_name)
+    if existing_register_channel is not None:
+        await ctx.respond(f'Channel named "{register_channel_name}" already exists.', ephemeral=True)
+        ret_reg_channel = existing_register_channel
     else:
-        #  On en créé un nouveau
-        channel = await guild.create_text_channel(channel_name)
-        await ctx.respond(f'Channel named "{channel_name}" was created.', ephemeral=True)
-        fiak.setChannelJeu(channel.id)
-        return channel
+        ret_reg_channel = await guild.create_text_channel(register_channel_name)
+        await ctx.respond(f'Channel named "{register_channel_name}" was created.', ephemeral=True)
+
+        await ret_reg_channel.send("Message d'inscription placeholder")
+
+    #  Channel de jeu
+    existing_game_channel = discord.utils.get(guild.channels, name=game_channel_name)
+    if existing_game_channel is not None:
+        await ctx.respond(f'Channel named "{game_channel_name}" already exists.', ephemeral=True)
+        ret_game_channel = existing_game_channel
+    else:
+        overwrites = {
+            guild.default_role: discord.PermissionOverwrite(view_channel=False),
+            ctx.author: discord.PermissionOverwrite(view_channel=True),
+            role: discord.PermissionOverwrite(view_channel=True),
+            guild.me: discord.PermissionOverwrite(view_channel=True)
+        }
+        ret_game_channel = await guild.create_text_channel(game_channel_name, overwrites=overwrites)
+        await ctx.respond(f'Channel named "{game_channel_name}" was created.', ephemeral=True)
+
+    fiak.setChannelJeu(ret_game_channel.id)
+    return ret_reg_channel, ret_game_channel
+
+async def create_role(ctx):
+    guild = ctx.guild
+    role  = await guild.create_role(name="fiakdle-player")
+
+    return role
 
 #COMMANDS
 
@@ -77,16 +101,17 @@ async def setup(ctx):
     new_id    = randint(1, nb_images)
     construire_info.update_fiak(fiak, new_id)
 
-    channel = await channel_setup(ctx)
+    role                      = await create_role(ctx)
+    reg_channel, game_channel = await channels_setup(ctx, role)
     fiak.clearWinner()
 
     mise_a_jour_aide()
 
     construire_info.sauvegarder_etat(fiak)
 
-    await channel.send(reponse_set_channel_jeu)
+    await game_channel.send(reponse_set_channel_jeu)
     cropper.crop_image(fiak.getImgUrl(), fiakjour_url, fiak.getZoom())
-    await channel.send(file=discord.File(fiakjour_url))
+    await game_channel.send(file=discord.File(fiakjour_url))
 
 @bot.command(description="Affiche la liste des gagnants.")
 async def winners(ctx):
@@ -133,7 +158,7 @@ async def reponse(ctx, personnage, manga):
             else:
                 await ctx.respond(f"Pas le bon personnage, pas le bon manga...")
         else:
-            await ctx.respond(f"Mauvais channel !\nchannel de jeu : fiakdle-game\nchannel actuel : {ctx.channel}", ephemeral=True)
+            await ctx.respond(f"Mauvais channel !\nchannel de jeu : {ctx.guild.get_channel(fiak.getChannelJeu())}\nchannel actuel : {ctx.channel}", ephemeral=True)
     else:
         await ctx.respond(reponse_absence_channel, ephemeral=True)
 
