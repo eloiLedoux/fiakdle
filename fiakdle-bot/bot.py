@@ -47,12 +47,16 @@ def mise_a_jour_aide():
     fiak.setAide(0)  # Si aucune heure correspond
 
 #Bot starting
+intents = discord.Intents().all()
+intents.members = True
 bot = discord.Bot()
 
 
 #FUNCTIONS
 
+id_msg_reg = 0 #CHANGER LA MANIERE DE RECUP LID
 async def channels_setup(ctx, role):
+    global id_msg_reg #CHANGER LA MANIERE DE RECUP LID
     register_channel_name = 'fiakdle-game'
     game_channel_name     = 'fiakdle-secret-game' 
     guild                 = ctx.guild
@@ -62,12 +66,17 @@ async def channels_setup(ctx, role):
     if existing_register_channel is not None:
         await ctx.respond(f'Channel named "{register_channel_name}" already exists.', ephemeral=True)
         ret_reg_channel = existing_register_channel
+
+        id_msg_reg = reg_msg.id #CHANGER LA MANIERE DE RECUP LID
     else:
         ret_reg_channel = await guild.create_text_channel(register_channel_name)
         await ctx.respond(f'Channel named "{register_channel_name}" was created.', ephemeral=True)
 
-        await ret_reg_channel.send("Message d'inscription placeholder")
+        reg_msg = await ret_reg_channel.send("Message d'inscription placeholder")
+        await reg_msg.add_reaction("🧠")
+        id_msg_reg = reg_msg.id #CHANGER LA MANIERE DE RECUP LID
 
+    
     #  Channel de jeu
     existing_game_channel = discord.utils.get(guild.channels, name=game_channel_name)
     if existing_game_channel is not None:
@@ -161,6 +170,30 @@ async def reponse(ctx, personnage, manga):
             await ctx.respond(f"Mauvais channel !\nchannel de jeu : {ctx.guild.get_channel(fiak.getChannelJeu())}\nchannel actuel : {ctx.channel}", ephemeral=True)
     else:
         await ctx.respond(reponse_absence_channel, ephemeral=True)
+
+
+# EVENTS
+
+@bot.event
+async def on_raw_reaction_add(payload):
+    print(f"MESSAGE:{id_msg_reg}")
+    print(f"MESSAGE_PAYLOAD:{payload.message_id}")
+    if payload.message_id == id_msg_reg: #CHANGER LA MANIERE DE RECUP LID
+        print(f"MESSAGE_PAYLOAD:{payload.message_id}")
+        guild  = bot.get_guild(payload.guild_id)
+        member = await guild.fetch_member(int(payload.user_id))
+        if str(payload.emoji) == "🧠":
+            role = discord.utils.get(guild.roles, name="fiakdle-player")
+            await member.add_roles(role)
+
+@bot.event
+async def on_raw_reaction_remove(payload):
+    if payload.message_id == id_msg_reg: #CHANGER LA MANIERE DE RECUP LID
+        guild = bot.get_guild(payload.guild_id)
+        member = await guild.fetch_member(int(payload.user_id))
+        if str(payload.emoji) == "🧠":
+            role = discord.utils.get(guild.roles, name="fiakdle-player")
+            await member.remove_roles(role)
 
 #TASKS
 
