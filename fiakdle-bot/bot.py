@@ -59,7 +59,14 @@ async def channels_setup(ctx, role):
     global id_msg_reg #CHANGER LA MANIERE DE RECUP LID
     register_channel_name = 'fiakdle-game'
     game_channel_name     = 'fiakdle-secret-game' 
+    category_name         = 'fiakdle'
     guild                 = ctx.guild
+
+    #  Categorie fiakdle
+    category = discord.utils.get(guild.categories, name=category_name)
+
+    if category is None: #If there's no category matching with the `name`
+        category = await guild.create_category(category_name) #Creates the category
 
     #  Channel d'inscription
     existing_register_channel = discord.utils.get(guild.channels, name=register_channel_name)
@@ -69,7 +76,7 @@ async def channels_setup(ctx, role):
 
         #LID DEVRAIT ETRE RECUP ICI AUSSI
     else:
-        ret_reg_channel = await guild.create_text_channel(register_channel_name)
+        ret_reg_channel = await guild.create_text_channel(register_channel_name, category=category)
         await ctx.respond(f'Channel named "{register_channel_name}" was created.', ephemeral=True)
 
         reg_msg = await ret_reg_channel.send("Message d'inscription placeholder")
@@ -90,7 +97,7 @@ async def channels_setup(ctx, role):
             role: discord.PermissionOverwrite(view_channel=True),
             guild.me: discord.PermissionOverwrite(view_channel=True)
         }
-        ret_game_channel = await guild.create_text_channel(game_channel_name, overwrites=overwrites)
+        ret_game_channel = await guild.create_text_channel(game_channel_name, overwrites=overwrites, category=category)
         await ctx.respond(f'Channel named "{game_channel_name}" was created.', ephemeral=True)
 
     fiak.setChannelJeu(ret_game_channel.id)
