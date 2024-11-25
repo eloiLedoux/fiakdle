@@ -67,13 +67,14 @@ async def channels_setup(ctx, role):
         await ctx.respond(f'Channel named "{register_channel_name}" already exists.', ephemeral=True)
         ret_reg_channel = existing_register_channel
 
-        id_msg_reg = reg_msg.id #CHANGER LA MANIERE DE RECUP LID
+        #LID DEVRAIT ETRE RECUP ICI AUSSI
     else:
         ret_reg_channel = await guild.create_text_channel(register_channel_name)
         await ctx.respond(f'Channel named "{register_channel_name}" was created.', ephemeral=True)
 
         reg_msg = await ret_reg_channel.send("Message d'inscription placeholder")
         await reg_msg.add_reaction("🧠")
+        await ret_reg_channel.set_permissions(guild.roles[0], send_messages=False)
         id_msg_reg = reg_msg.id #CHANGER LA MANIERE DE RECUP LID
 
     
