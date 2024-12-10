@@ -1,9 +1,8 @@
 import fiak
-import recup_info
-import ecrire_info
+import interface_bdd
 
 def construire_fiak(id):
-    data = recup_info.requete_data_sqlite(id)
+    data = interface_bdd.requete_data_sqlite(id)
     if data == -1:
         return -1
     
@@ -15,7 +14,7 @@ def construire_fiak(id):
     )
 
 def recuperer_etat():
-    data = recup_info.requete_etat_sqlite()
+    data = interface_bdd.requete_etat_sqlite()
     if data == -1:
         return -1
     
@@ -32,7 +31,7 @@ def recuperer_etat():
     )
 
 def update_fiak(fiak, id):
-    data = recup_info.requete_data_sqlite(id)
+    data = interface_bdd.requete_data_sqlite(id)
     if data == -1:
         return -1
     
@@ -45,7 +44,7 @@ def update_fiak(fiak, id):
 
 def sauvegarder_etat(fiak):
     etat = fiak.recuperer_etat_fiak()
-    ecrire_info.ecrire_nouveau_jeu_sqlite(
+    interface_bdd.ecrire_nouveau_jeu_sqlite(
         img_id       = ''.join(etat['img_id']),
         nom_perso    = ';'.join(etat['nom_perso']),
         nom_manga    = ';'.join(etat['nom_manga']),
@@ -58,13 +57,13 @@ def sauvegarder_etat(fiak):
     )
 
 def sauvegarder_aide(aide):
-    ecrire_info.ecrire_aide_sqlite(aide)
+    interface_bdd.ecrire_aide_sqlite(aide)
 
 def sauvegarder_winners(winners):
-    ecrire_info.ecrire_winners_sqlite(''.join(str(x) for x in winners))
+    interface_bdd.ecrire_winners_sqlite(''.join(str(x) for x in winners))
 
 def nb_images_bdd():
-    return recup_info.requete_nb_images()
+    return interface_bdd.requete_nb_images()
 
 if __name__ == "__main__":
     print(nb_images_bdd())

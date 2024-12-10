@@ -70,12 +70,7 @@ async def channels_setup(ctx, role):
 
     #  Channel d'inscription
     existing_register_channel = discord.utils.get(guild.channels, name=register_channel_name)
-    if existing_register_channel is not None:
-        await ctx.respond(f'Channel named "{register_channel_name}" already exists.', ephemeral=True)
-        ret_reg_channel = existing_register_channel
-
-        #LID DEVRAIT ETRE RECUP ICI AUSSI
-    else:
+    if existing_register_channel is None:
         ret_reg_channel = await guild.create_text_channel(register_channel_name, category=category)
         await ctx.respond(f'Channel named "{register_channel_name}" was created.', ephemeral=True)
 
@@ -83,14 +78,16 @@ async def channels_setup(ctx, role):
         await reg_msg.add_reaction("🧠")
         await ret_reg_channel.set_permissions(guild.roles[0], send_messages=False)
         id_msg_reg = reg_msg.id #CHANGER LA MANIERE DE RECUP LID
+    else:
+        await ctx.respond(f'Channel named "{register_channel_name}" already exists.', ephemeral=True)
+        ret_reg_channel = existing_register_channel
+
+        #LID DEVRAIT ETRE RECUP ICI AUSSI
 
     
     #  Channel de jeu
     existing_game_channel = discord.utils.get(guild.channels, name=game_channel_name)
-    if existing_game_channel is not None:
-        await ctx.respond(f'Channel named "{game_channel_name}" already exists.', ephemeral=True)
-        ret_game_channel = existing_game_channel
-    else:
+    if existing_game_channel is None:
         overwrites = {
             guild.default_role: discord.PermissionOverwrite(view_channel=False),
             ctx.author: discord.PermissionOverwrite(view_channel=True),
@@ -99,6 +96,9 @@ async def channels_setup(ctx, role):
         }
         ret_game_channel = await guild.create_text_channel(game_channel_name, overwrites=overwrites, category=category)
         await ctx.respond(f'Channel named "{game_channel_name}" was created.', ephemeral=True)
+    else:
+        await ctx.respond(f'Channel named "{game_channel_name}" already exists.', ephemeral=True)
+        ret_game_channel = existing_game_channel
 
     fiak.setChannelJeu(ret_game_channel.id)
     return ret_reg_channel, ret_game_channel
@@ -114,20 +114,21 @@ async def create_role(ctx):
 @bot.command(description="Setup le channel de jeu.")
 @has_permissions(administrator=True)
 async def setup(ctx):
+    #Potientiellement le reset de l'image ne devrait pas avoir lieu dans le setup,
+    #puisque ce dernier doit etre appelé par chaque serveur voulant utiliser le bot.
+    #Le contenu suivant pourrait donc intégrer une fonction de reset.
     nb_images = construire_info.nb_images_bdd()
     new_id    = randint(1, nb_images)
     construire_info.update_fiak(fiak, new_id)
+    mise_a_jour_aide()
+    fiak.clearWinner()
+    construire_info.sauvegarder_etat(fiak)
 
     role                      = await create_role(ctx)
     reg_channel, game_channel = await channels_setup(ctx, role)
-    fiak.clearWinner()
 
-    mise_a_jour_aide()
-
-    construire_info.sauvegarder_etat(fiak)
-
-    await game_channel.send(reponse_set_channel_jeu)
     cropper.crop_image(fiak.getImgUrl(), fiakjour_url, fiak.getZoom())
+    await game_channel.send(reponse_set_channel_jeu)
     await game_channel.send(file=discord.File(fiakjour_url))
 
 @bot.command(description="Affiche la liste des gagnants.")
@@ -202,6 +203,18 @@ async def on_raw_reaction_remove(payload):
         if str(payload.emoji) == "🧠":
             role = discord.utils.get(guild.roles, name="fiakdle-player")
             await member.remove_roles(role)
+
+@bot.event
+async def on_guild_remove(guild: discord.Guild):
+    print("removed")
+
+@bot.event
+async def on_guild_join(guild: discord.Guild):
+    print("joined")
+
+@bot.event
+async def on_ready():
+    print("ready")
 
 #TASKS
 
