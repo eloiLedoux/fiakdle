@@ -185,10 +185,7 @@ async def reponse(ctx, personnage, manga):
 
 @bot.event
 async def on_raw_reaction_add(payload):
-    print(f"MESSAGE:{id_msg_reg}")
-    print(f"MESSAGE_PAYLOAD:{payload.message_id}")
     if payload.message_id == id_msg_reg: #CHANGER LA MANIERE DE RECUP LID
-        print(f"MESSAGE_PAYLOAD:{payload.message_id}")
         guild  = bot.get_guild(payload.guild_id)
         member = await guild.fetch_member(int(payload.user_id))
         if str(payload.emoji) == "🧠":
