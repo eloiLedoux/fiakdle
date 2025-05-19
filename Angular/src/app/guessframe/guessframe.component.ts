@@ -1,88 +1,66 @@
 import {Component} from '@angular/core';
 import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {Observable} from 'rxjs';
-import {map, startWith} from 'rxjs/operators';
+import {filter, map, startWith} from 'rxjs/operators';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {AsyncPipe} from '@angular/common';
 import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import {MatInputModule} from '@angular/material/input';
 import {MatFormFieldModule} from '@angular/material/form-field';
+import { ApiService } from '../api.service';
+import { Perso } from '../api.service';
+import { rollInAnimation, shakeAnimation, bounceAnimation, rubberBandAnimation, collapseAnimation } from "angular-animations";
 
-export interface Perso {
-  image: string;
-  name: string;
-  manga: string;
-}
+
 
 @Component({
   selector: 'app-guessframe',
-  imports: [MatAutocompleteModule, MatInputModule, MatFormFieldModule, MatSlideToggleModule, AsyncPipe],
-  template: `
-    <div class="row p-5 align-items-center">
-      <div class="card p-3 mb-3 text-bg-dark">
-        <img src="../assets/frostbutt.webp">
-        <mat-form-field class="example-full-width">
-          <mat-label>State</mat-label>
-          <input matInput
-                aria-label="Personnage"
-                [matAutocomplete]="auto">
-          <mat-autocomplete #auto="matAutocomplete">
-            @for (perso of filteredPerso | async; track perso) {
-              <mat-option [value]="perso.name">
-                <img alt="../assets/namiHead.jpg" class="example-option-img" [src]="perso.image" height="40">
-                {{perso.name}} | {{perso.manga}}
-              </mat-option>
-            }
-          </mat-autocomplete>
-        </mat-form-field>
-      </div>  
-      
-    </div>
-    
-  `,
-  styles: ``
+  imports: [FormsModule, ReactiveFormsModule, MatAutocompleteModule, MatInputModule, MatFormFieldModule, MatSlideToggleModule, AsyncPipe],
+  templateUrl: './guessframe.component.html',
+  styleUrls: ['./guessframe.component.scss'],
+  animations: [
+    bounceAnimation({ duration: 2000 }),
+    rubberBandAnimation({anchor: 'rubber', direction: '=>', duration: 500}),
+    collapseAnimation(),
+    shakeAnimation(),
+    rollInAnimation()
+  ]
 })
 export class GuessframeComponent {
-  stateCtrl = new FormControl('');
+  persoCtrl = new FormControl('');
   filteredPerso: Observable<Perso[]>;
+  liste: Perso[];
+  image : string;
+  animState = false;
 
-  states: Perso[] = [
-    {
-      name: 'Nami',
-      // https://commons.wikimedia.org/wiki/File:Flag_of_Arkansas.svg
-      image: '../assets/namiHead.jpg',
-      manga: "One Piece",
-    },
-    {
-      name: 'Robin',
-      // https://commons.wikimedia.org/wiki/File:Flag_of_California.svg
-      image: '../assets/namiHead.jpg',
-      manga: "One Piece",
-    },
-    {
-      name: 'Luffy',
-      // https://commons.wikimedia.org/wiki/File:Flag_of_Florida.svg
-      image: '../assets/namiHead.jpg',
-      manga: "One Piece",
-    },
-    {
-      name: 'Zoro',
-      // https://commons.wikimedia.org/wiki/File:Flag_of_Texas.svg
-      image: '../assets/namiHead.jpg',
-      manga: "One Piece",
-    },
-  ];
-
-  constructor() {
-    this.filteredPerso = this.stateCtrl.valueChanges.pipe(
+  constructor(private apiService: ApiService) {
+    this.liste = this.apiService.getList();
+    this.filteredPerso = this.persoCtrl.valueChanges.pipe(
       startWith(''),
-      map(state => (state ? this._filterStates(state) : this.states.slice())),
+      map(str => (str ? this._filter(str) : [])),
     );
+    this.image = this.apiService.getImageOfTheDay();
   }
 
-  private _filterStates(value: string): Perso[] {
+  private _filter(value: string): Perso[] {
     const filterValue = value.toLowerCase();
-
-    return this.states.filter(state => state.name.toLowerCase().includes(filterValue));
+    if(value.length <2){
+      return [];
+    }
+    return this.liste.filter(state => (state.name.toLowerCase().includes(filterValue) || state.manga.toLowerCase().includes(filterValue)));
   }
+
+  onSubmit() {
+    this.animState = true;
+    if(this.persoCtrl.value === null){
+      return;
+    }
+    var response = this.apiService.guess(this.persoCtrl.value);
+    
+    if(response == true){
+      console.log("gg");
+    }
+    this.persoCtrl.reset();
+  }
+
 }
