@@ -1,23 +1,47 @@
-<div  [@shake]="animState" class="row p-5 align-items-center">
-    <div class="card p-3 mb-3 text-bg-dark">
-    <img  src= "{{ image }}" >
-    <mat-form-field class="example-full-width" >
-        <mat-label>Personnage</mat-label>
-        <form (ngSubmit)="onSubmit()">
-            <input matInput
-            aria-label="Personnage"
-            [matAutocomplete]="auto"
-            [formControl]="persoCtrl">
-            <mat-autocomplete #auto="matAutocomplete">
-                @for (perso of filteredPerso | async; track perso) {
-                    <mat-option [value]="perso.name">
-                    <img alt="../assets/namiHead.jpg" class="example-option-img" [src]="perso.image" height="40">
-                    {{perso.name}} | {{perso.manga}}
-                    </mat-option>
-                }
-            </mat-autocomplete>
-        </form>
-    </mat-form-field>
+<div [@shake]="errorAnimation" [@tada]="winAnimation" class="row p-3 pb-2 align-items-center ">
+    <div class="card p-3 mb-2 {{backgroundColor}}">
+        <img class="rounded border border-dark m-2" src="{{ image }}" >
+        @if (!win){
+            <mat-form-field class="example-full-width">
+                <mat-label>Personnage</mat-label>
+                <form (ngSubmit)="onSubmit()">
+                    <input matInput
+                    aria-label="Personnage"
+                    [matAutocomplete]="auto"
+                    [formControl]="persoCtrl">
+                    <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete" [displayWith]="displayFonction">
+                        @for (perso of filteredPerso | async; track perso) {
+                            <mat-option [value]="perso">
+                            <img alt="../assets/namiHead.jpg" class="example-option-img" [src]="perso.image" height="40">
+                            {{perso.name}} | {{perso.manga}}
+                            </mat-option>
+                        }
+                    </mat-autocomplete>
+                </form>
+            </mat-form-field>
+        }
+        
     </div>  
-    
 </div>
+
+
+@if(!win){
+    @if (errorListe.length >0){
+
+        <div class="rounded row bg-danger p-1 g-1">
+            @for (index of errorListe ; track index) {
+                <div class="col-1">
+                    <div class="card bg-dark p-1">
+                        <img alt="../assets/namiHead.jpg" class="w-100" [src]="liste[index].image" >
+                        <p class="figure-caption  m-0 text-white">{{liste[index].name}}</p>
+                    </div>                  
+                </div>
+            }
+        </div>
+    }
+}
+@else{
+    <div class="rounded row bg-secondary p-3 pb-0">
+        <p>bien ouej mec, tu as trouvé en faisant {{errorListe.length}} erreurs</p>
+    </div>
+}
