@@ -19,6 +19,9 @@
                     </mat-autocomplete>
                 </form>
             </mat-form-field>
+            @if (manga!=""){
+                <p>Le manga est : {{manga}}</p>
+            }
         }
         
     </div>  
@@ -31,10 +34,18 @@
         <div class="rounded row bg-danger p-1 g-1">
             @for (index of errorListe ; track index) {
                 <div class="col-1">
-                    <div class="card bg-dark p-1">
-                        <img alt="../assets/namiHead.jpg" class="w-100" [src]="liste[index].image" >
-                        <p class="figure-caption  m-0 text-white">{{liste[index].name}}</p>
-                    </div>                  
+                    @if (manga == liste[index].manga){
+                        <div class="card bg-success p-1">
+                            <img alt="../assets/namiHead.jpg" class="w-100" [src]="liste[index].image" >
+                            <p class="figure-caption  m-0 text-white">{{liste[index].name}}</p>
+                        </div>  
+                    }@else{
+                        <div class="card bg-dark p-1">
+                            <img alt="../assets/namiHead.jpg" class="w-100" [src]="liste[index].image" >
+                            <p class="figure-caption  m-0 text-white">{{liste[index].name}}</p>
+                        </div>  
+                    }
+                                    
                 </div>
             }
         </div>

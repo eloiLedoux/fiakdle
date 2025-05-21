@@ -31,6 +31,7 @@ export class GuessframeComponent {
   errorAnimation = false;
   winAnimation = false;
   win=false;
+  manga="";
   backgroundColor = "text-bg-dark";
 
   errorListe : number[] = []
@@ -75,13 +76,20 @@ export class GuessframeComponent {
       return;
     }
 
-    var response = this.apiService.guess(this.persoCtrl.value.name);
+    var response = this.apiService.guess(this.persoCtrl.value);
 
-    if(response == true){
+    if(response == 1){
       this.backgroundColor = "text-bg-success";
       this.winAnimation = !this.winAnimation;
       this.win=true;
 
+    }else if (response==-1){
+      this.errorAnimation = !this.errorAnimation;
+      
+      if (this.errorListe.length >=12){
+        this.errorListe.pop()
+      }
+      this.errorListe.unshift(indexPerso);
     }else{
       this.errorAnimation = !this.errorAnimation;
       
@@ -89,8 +97,7 @@ export class GuessframeComponent {
         this.errorListe.pop()
       }
       this.errorListe.unshift(indexPerso);
-      
-      
+      this.manga = this.persoCtrl.value.manga;
     }
 
     this.persoCtrl.reset();

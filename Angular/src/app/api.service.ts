@@ -17,34 +17,34 @@ export class ApiService {
 
   liste: Perso[] = [
     {
-      name: 'Nami',
-      image: 'https://minio-api.letourneur.net/test/namiHead.jpg',
-      manga: "One Piece",
+      name: 'bulma',
+      image: 'https://minio-api.letourneur.net/fiakdle/portraits/bulma.png',
+      manga: "dragon ball",
     },
     {
-      name: 'Robin',
-      image: 'https://minio-api.letourneur.net/test/robin.jpg',
-      manga: "One Piece",
+      name: 'chisa',
+      image: 'https://minio-api.letourneur.net/fiakdle/portraits/chisa.png',
+      manga: "grand blue",
     },
     {
-      name: 'Luffy',
-      image: 'https://minio-api.letourneur.net/test/luffy.jpg',
-      manga: "One Piece",
+      name: 'Nemu',
+      image: 'https://minio-api.letourneur.net/fiakdle/portraits/nemu.png',
+      manga: "Bleach",
     },
     {
-      name: 'Zoro',
-      image: 'https://minio-api.letourneur.net/test/zoro.jpg',
-      manga: "One Piece",
+      name: 'rukia',
+      image: 'https://minio-api.letourneur.net/fiakdle/portraits/rukia.png',
+      manga: "Bleach",
     },
     {
-      name: 'Nami',
-      image: 'https://minio-api.letourneur.net/test/namiHead.jpg',
-      manga: "One Piece",
+      name: 'Tatsumaki',
+      image: 'https://minio-api.letourneur.net/fiakdle/portraits/tatsumaki.png',
+      manga: "One punch man",
     },
     {
-      name: 'Robin',
-      image: 'https://minio-api.letourneur.net/test/robin.jpg',
-      manga: "One Piece",
+      name: 'Yoruichi',
+      image: 'https://minio-api.letourneur.net/fiakdle/portraits/yoruichi.png',
+      manga: "Bleach",
     },
     {
       name: 'Luffy',
@@ -190,10 +190,14 @@ export class ApiService {
       return this.image;
   }
 
-  guess(name : string) : boolean {
-    if (name.toLowerCase() == "nami"){
-      return true;
+  guess(perso : Perso) : number {
+    if (perso.name.toLowerCase() == "nami"){
+      return 1;
+    }else if (perso.manga == "One Piece"){
+      return 0;
     }
-    return false;
+    return -1;
   }
+
+  
 }
